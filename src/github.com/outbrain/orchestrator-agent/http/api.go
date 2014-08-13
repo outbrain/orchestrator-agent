@@ -124,9 +124,31 @@ func (this *HttpAPI) MountLV(params martini.Params, r render.Render, req *http.R
 
 
 
-// MountLV mounts a logical volume on config mount point
+// Unmount umounts the config mount point
 func (this *HttpAPI) Unmount(params martini.Params, r render.Render) {
 	output, err := osagent.Unmount(config.Config.SnapshotMountPoint)
+	if err != nil {
+		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
+// LocalSnapshots lists dc-local available snapshots for this host
+func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render) {
+	output, err := osagent.AvailableSnapshots(true)
+	if err != nil {
+		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
+// Snapshots lists available snapshots for this host
+func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render) {
+	output, err := osagent.AvailableSnapshots(false)
 	if err != nil {
 		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
@@ -146,4 +168,6 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mount", this.GetMount) 
 	m.Get("/api/mountlv", this.MountLV) 
 	m.Get("/api/umount", this.Unmount) 
+	m.Get("/api/available-snapshots-local", this.AvailableLocalSnapshots) 
+	m.Get("/api/available-snapshots", this.AvailableSnapshots) 
 }

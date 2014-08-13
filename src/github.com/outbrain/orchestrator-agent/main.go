@@ -18,7 +18,7 @@ package main
 
 import (
 	"flag"
-	"github.com/outbrain/orchestrator-agent/process"
+	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/app"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/log"
@@ -50,8 +50,12 @@ func main() {
 	} else {
 		config.Read("/etc/orchestrator-agent.conf.json", "conf/orchestrator-agent.conf.json", "orchestrator-agent.conf.json")
 	}
-	
-	log.Debugf("Process token: %s", token.ProcessToken.Hash)
+
+	if len(config.Config.AgentsServer) == 0 {
+		log.Fatal("AgentsServer unconfigured. Please set to the HTTP address orchestrator serves agents (port is b y default 3001)")
+	}
+		
+	log.Debugf("Process token: %s", agent.ProcessToken.Hash)
 	
 	app.Http()
 }

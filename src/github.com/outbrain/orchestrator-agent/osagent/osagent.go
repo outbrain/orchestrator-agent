@@ -25,6 +25,8 @@ import (
 	"strconv"
 	"regexp"
 	"github.com/outbrain/log"
+
+	"github.com/outbrain/orchestrator-agent/config"
 )
 
 
@@ -177,3 +179,18 @@ func Unmount(mountPoint string) (Mount, error) {
 	}
 	return GetMount(mountPoint)
 }
+
+
+func AvailableSnapshots(requireLocal bool) ([]string, error) {
+	var command string
+	if requireLocal { 
+		command = config.Config.AvailableLocalSnapshotHostsCommand 
+	} else {
+		command = config.Config.AvailableSnapshotHostsCommand
+	}
+	output, err := commandOutput(command)
+	hosts, err := outputLines(output, err)
+
+	return hosts, err
+}
+

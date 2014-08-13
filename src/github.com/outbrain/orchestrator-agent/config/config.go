@@ -23,11 +23,14 @@ import (
 	"github.com/outbrain/log"
 )
 
-// Configuration makes for orchestrator configuration input, which can be provided by user via JSON formatted file.
-// Some of the parameteres have reasonable default values, and some (like database credentials) are 
-// strictly expected from user.
+// Configuration makes for orchestrator-agent configuration input, which can be provided by user via JSON formatted file.
 type Configuration struct {
-	SnapshotMountPoint	string
+	SnapshotMountPoint		string			// The single, agreed-upon mountpoint for logical volume snapshots			
+	ContinuousPollSeconds	uint			// Poll interval for continuous operation
+	ResubmitAgentIntervalMinutes	uint	// Poll interval for resubmitting this agent on orchestrator agents API
+	AvailableLocalSnapshotHostsCommand	string
+	AvailableSnapshotHostsCommand	string
+	AgentsServer			string			// HTTP address of the orchestrator agents server
 	HTTPAuthUser		string				// Username for HTTP Basic authentication (blank disables authentication)
 	HTTPAuthPassword	string				// Password for HTTP Basic authentication
 }	
@@ -36,9 +39,14 @@ var Config *Configuration = NewConfiguration()
 
 func NewConfiguration() *Configuration {
 	return &Configuration {
-		SnapshotMountPoint:			"",
-		HTTPAuthUser: 				"",
-		HTTPAuthPassword: 			"",
+		SnapshotMountPoint:				"",
+		ContinuousPollSeconds:			60,
+		ResubmitAgentIntervalMinutes:	60,
+		AvailableLocalSnapshotHostsCommand:	"",
+		AvailableSnapshotHostsCommand:		"",
+		AgentsServer:					"",
+		HTTPAuthUser: 					"",
+		HTTPAuthPassword: 				"",
 	}
 }
 

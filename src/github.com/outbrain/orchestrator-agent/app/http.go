@@ -18,15 +18,23 @@
 package app
 
 import (
+	"fmt"
+	
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/martini-contrib/auth"
-	
+
+	nethttp "net/http" 
+		
 	"github.com/outbrain/orchestrator-agent/http"
 	"github.com/outbrain/orchestrator-agent/config"
+	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/log"
 )
 
+const (
+	port = 3002
+)
 
 // Http starts serving HTTP (api/web) requests 
 func Http() {
@@ -42,12 +50,14 @@ func Http() {
 		HTMLContentType: "text/html",
 	}))
 	m.Use(martini.Static("resources/public"))
+
+	go agent.ContinuousOperation()
 	
-	log.Info("Started HTTP")
+	log.Infof("Starting HTTP on port %d", port)
 
 	http.API.RegisterRequests(m)
 
 	// Serve
-	m.Run()
+	nethttp.ListenAndServe(fmt.Sprintf(":%d", port), m)
 }
 
