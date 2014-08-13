@@ -52,7 +52,7 @@ func main() {
 	}
 
 	if len(config.Config.AgentsServer) == 0 {
-		log.Fatal("AgentsServer unconfigured. Please set to the HTTP address orchestrator serves agents (port is b y default 3001)")
+		log.Fatal("AgentsServer unconfigured. Please set to the HTTP address orchestrator serves agents (port is by default 3001)")
 	}
 		
 	log.Debugf("Process token: %s", agent.ProcessToken.Hash)

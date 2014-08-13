@@ -5,6 +5,7 @@
     "ResubmitAgentIntervalMinutes": 60,
     "AvailableLocalSnapshotHostsCommand": "/outbrain/ops/scripts/mysql-snap/bin/available_snapshots_local.bash",
     "AvailableSnapshotHostsCommand": "/outbrain/ops/scripts/mysql-snap/bin/available_snapshots.bash",
+    "HTTPPort": 3002,
     "HTTPAuthUser": "",
     "HTTPAuthPassword": ""
 }

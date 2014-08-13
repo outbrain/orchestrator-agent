@@ -32,9 +32,6 @@ import (
 	"github.com/outbrain/log"
 )
 
-const (
-	port = 3002
-)
 
 // Http starts serving HTTP (api/web) requests 
 func Http() {
@@ -53,11 +50,11 @@ func Http() {
 
 	go agent.ContinuousOperation()
 	
-	log.Infof("Starting HTTP on port %d", port)
+	log.Infof("Starting HTTP on port %d", config.Config.HTTPPort)
 
 	http.API.RegisterRequests(m)
 
 	// Serve
-	nethttp.ListenAndServe(fmt.Sprintf(":%d", port), m)
+	nethttp.ListenAndServe(fmt.Sprintf(":%d", config.Config.HTTPPort), m)
 }
 

@@ -31,6 +31,7 @@ type Configuration struct {
 	AvailableLocalSnapshotHostsCommand	string
 	AvailableSnapshotHostsCommand	string
 	AgentsServer			string			// HTTP address of the orchestrator agents server
+	HTTPPort				uint			// HTTP port on which this service listens
 	HTTPAuthUser		string				// Username for HTTP Basic authentication (blank disables authentication)
 	HTTPAuthPassword	string				// Password for HTTP Basic authentication
 }	
@@ -45,6 +46,7 @@ func NewConfiguration() *Configuration {
 		AvailableLocalSnapshotHostsCommand:	"",
 		AvailableSnapshotHostsCommand:		"",
 		AgentsServer:					"",
+		HTTPPort:						3002,
 		HTTPAuthUser: 					"",
 		HTTPAuthPassword: 				"",
 	}
