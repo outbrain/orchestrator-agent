@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/outbrain/orchestrator-agent/process"
 	"github.com/outbrain/orchestrator-agent/app"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/log"
@@ -49,6 +50,8 @@ func main() {
 	} else {
 		config.Read("/etc/orchestrator-agent.conf.json", "conf/orchestrator-agent.conf.json", "orchestrator-agent.conf.json")
 	}
+	
+	log.Debugf("Process token: %s", token.ProcessToken.Hash)
 	
 	app.Http()
 }

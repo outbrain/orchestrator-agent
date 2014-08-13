@@ -27,6 +27,7 @@ import (
 // Some of the parameteres have reasonable default values, and some (like database credentials) are 
 // strictly expected from user.
 type Configuration struct {
+	SnapshotMountPoint	string
 	HTTPAuthUser		string				// Username for HTTP Basic authentication (blank disables authentication)
 	HTTPAuthPassword	string				// Password for HTTP Basic authentication
 }	
@@ -35,6 +36,7 @@ var Config *Configuration = NewConfiguration()
 
 func NewConfiguration() *Configuration {
 	return &Configuration {
+		SnapshotMountPoint:			"",
 		HTTPAuthUser: 				"",
 		HTTPAuthPassword: 			"",
 	}

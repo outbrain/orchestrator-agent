@@ -1,4 +1,5 @@
 {
+    "SnapshotMountPoint": "/var/tmp/mysql-datadir-snap",
     "HTTPAuthUser": "",
     "HTTPAuthPassword": ""
 }
