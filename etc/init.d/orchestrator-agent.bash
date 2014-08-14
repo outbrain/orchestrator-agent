@@ -1,6 +1,10 @@
 #!/bin/bash
 # orchestrator-agent daemon
-#
+# chkconfig: 345 20 80
+# description: orchestrator-agent daemon
+# processname: orchestrator-agent
+
+
 # Script credit: http://werxltd.com/wp/2012/01/05/simple-init-d-script-template/
 
 DAEMON_PATH="/usr/local/orchestrator-agent"
@@ -21,6 +25,7 @@ case "$1" in
     #echo "Saving PID" $PID " to " $PIDFILE
     if [ -z $PID ]; then
       printf "%s\n" "Fail"
+      exit 1
     else
       echo $PID > $PIDFILE
       printf "%s\n" "Ok"
@@ -29,14 +34,16 @@ case "$1" in
   status)
     printf "%-50s" "Checking $NAME..."
     if [ -f $PIDFILE ]; then
-    PID=$(cat $PIDFILE)
+      PID=$(cat $PIDFILE)
       if [ -z "$(ps axf | awk '{print $1}' | grep ${PID})" ]; then
         printf "%s\n" "Process dead but pidfile exists"
+        exit 1
       else
         echo "Running"
       fi
     else
       printf "%s\n" "Service not running"
+      exit 1
     fi
   ;;
   stop)
@@ -49,6 +56,7 @@ case "$1" in
       rm -f $PIDFILE
     else
       printf "%s\n" "pidfile not found"
+      exit 1
     fi
   ;;
   

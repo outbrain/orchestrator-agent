@@ -3,8 +3,8 @@
     "AgentsServer": "http://localhost:3001",
     "ContinuousPollSeconds" : 60,
     "ResubmitAgentIntervalMinutes": 60,
-    "AvailableLocalSnapshotHostsCommand": "/outbrain/ops/scripts/mysql-snap/bin/available_snapshots_local.bash",
-    "AvailableSnapshotHostsCommand": "/outbrain/ops/scripts/mysql-snap/bin/available_snapshots.bash",
+    "AvailableLocalSnapshotHostsCommand": "echo snoach-obil",
+    "AvailableSnapshotHostsCommand": "echo localhost\nsnoach-obil",
     "HTTPPort": 3002,
     "HTTPAuthUser": "",
     "HTTPAuthPassword": ""
