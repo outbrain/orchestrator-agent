@@ -18,11 +18,25 @@ package main
 
 import (
 	"flag"
+	"os"
+	"os/signal"
+	"syscall"
+	
 	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/app"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/log"
 )
+
+func acceptSignal() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGHUP)
+
+	// Block until a signal is received.
+	sig := <-c
+	log.Fatalf("Got signal: %+v", sig)
+}
+
 
 // main is the application's entry point. It will either spawn a CLI or HTTP itnerfaces.
 func main() {
@@ -56,6 +70,8 @@ func main() {
 	}
 		
 	log.Debugf("Process token: %s", agent.ProcessToken.Hash)
+	
+	go acceptSignal()
 	
 	app.Http()
 }

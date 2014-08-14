@@ -20,10 +20,12 @@ import (
 	"os"
 	"encoding/json"
 	"net/http"
+	"errors"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	
 	"github.com/outbrain/orchestrator-agent/config"
+	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/osagent"	
 )
 
@@ -61,21 +63,33 @@ type APIResponse struct {
 }
 
 
+func validateToken(token string) error {
+	if token == agent.ProcessToken.Hash { 
+		return nil
+	} else {
+		return errors.New("Invalid token")
+	}
+}
+
 // Hostname provides information on this process
 func (this *HttpAPI) Hostname(params martini.Params, r render.Render) {
 	hostname, err := os.Hostname()
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, hostname)
 }
 
 // ListLogicalVolumes lists logical volumes by pattern
-func (this *HttpAPI) ListLogicalVolumes(params martini.Params, r render.Render) {
+func (this *HttpAPI) ListLogicalVolumes(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	output, err := osagent.LogicalVolumes("", params["pattern"])
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
@@ -84,13 +98,17 @@ func (this *HttpAPI) ListLogicalVolumes(params martini.Params, r render.Render) 
 
 // LogicalVolume lists a logical volume by name/path/mount point
 func (this *HttpAPI) LogicalVolume(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	lv := params["lv"]
 	if lv == "" {
 		lv = req.URL.Query().Get("lv");
 	}
 	output, err := osagent.LogicalVolumes(lv, "")
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
@@ -98,10 +116,14 @@ func (this *HttpAPI) LogicalVolume(params martini.Params, r render.Render, req *
 
 
 // GetMount shows the configured mount point's status
-func (this *HttpAPI) GetMount(params martini.Params, r render.Render) {
+func (this *HttpAPI) GetMount(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	output, err := osagent.GetMount(config.Config.SnapshotMountPoint)
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
@@ -110,13 +132,17 @@ func (this *HttpAPI) GetMount(params martini.Params, r render.Render) {
 
 // MountLV mounts a logical volume on config mount point
 func (this *HttpAPI) MountLV(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	lv := params["lv"]
 	if lv == "" {
 		lv = req.URL.Query().Get("lv");
 	}
 	output, err := osagent.MountLV(config.Config.SnapshotMountPoint, lv)
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
@@ -125,10 +151,14 @@ func (this *HttpAPI) MountLV(params martini.Params, r render.Render, req *http.R
 
 
 // Unmount umounts the config mount point
-func (this *HttpAPI) Unmount(params martini.Params, r render.Render) {
+func (this *HttpAPI) Unmount(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	output, err := osagent.Unmount(config.Config.SnapshotMountPoint)
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
@@ -136,10 +166,14 @@ func (this *HttpAPI) Unmount(params martini.Params, r render.Render) {
 
 
 // LocalSnapshots lists dc-local available snapshots for this host
-func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render) {
+func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	output, err := osagent.AvailableSnapshots(true)
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
@@ -147,10 +181,14 @@ func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Ren
 
 
 // Snapshots lists available snapshots for this host
-func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render) {
+func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
 	output, err := osagent.AvailableSnapshots(false)
 	if err != nil {
-		r.JSON(200, &APIResponse{Code:ERROR, Message: err.Error(),})
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
 	r.JSON(200, output)
