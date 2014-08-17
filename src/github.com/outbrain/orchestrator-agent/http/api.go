@@ -96,6 +96,21 @@ func (this *HttpAPI) ListLogicalVolumes(params martini.Params, r render.Render, 
 }
 
 
+// ListSnapshotsLogicalVolumes lists logical volumes by pattern
+func (this *HttpAPI) ListSnapshotsLogicalVolumes(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	output, err := osagent.LogicalVolumes("", config.Config.SnapshotVolumesFilter)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
 // LogicalVolume lists a logical volume by name/path/mount point
 func (this *HttpAPI) LogicalVolume(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -165,6 +180,25 @@ func (this *HttpAPI) Unmount(params martini.Params, r render.Render, req *http.R
 }
 
 
+
+// DiskUsage returns the number of bytes of a give ndirectory (recursive)
+func (this *HttpAPI) DiskUsage(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	path := req.URL.Query().Get("path");
+	
+	output, err := osagent.DiskUsage(path)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
+
 // LocalSnapshots lists dc-local available snapshots for this host
 func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -195,17 +229,68 @@ func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render, 
 }
 
 
+// MySQLRunning checks whether the MySQL service is up
+func (this *HttpAPI) MySQLRunning(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	output, err := osagent.MySQLRunning()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
+// MySQLStop shuts down the MySQL service
+func (this *HttpAPI) MySQLStop(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	err := osagent.MySQLStop()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, err == nil)
+}
+
+
+
+// MySQLStop starts the MySQL service
+func (this *HttpAPI) MySQLStart(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	err := osagent.MySQLStart()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, err == nil)
+}
+
+
 
 // RegisterRequests makes for the de-facto list of known API calls
 func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/hostname", this.Hostname) 
 	m.Get("/api/lvs", this.ListLogicalVolumes) 
 	m.Get("/api/lvs/:pattern", this.ListLogicalVolumes) 
+	m.Get("/api/lvs-snapshots", this.ListSnapshotsLogicalVolumes) 
 	m.Get("/api/lv", this.LogicalVolume) 
 	m.Get("/api/lv/:lv", this.LogicalVolume) 
 	m.Get("/api/mount", this.GetMount) 
 	m.Get("/api/mountlv", this.MountLV) 
 	m.Get("/api/umount", this.Unmount) 
+	m.Get("/api/du", this.DiskUsage) 
 	m.Get("/api/available-snapshots-local", this.AvailableLocalSnapshots) 
 	m.Get("/api/available-snapshots", this.AvailableSnapshots) 
+	m.Get("/api/mysql-status", this.MySQLRunning) 
+	m.Get("/api/mysql-stop", this.MySQLStop) 
+	m.Get("/api/mysql-start", this.MySQLStart) 
 }

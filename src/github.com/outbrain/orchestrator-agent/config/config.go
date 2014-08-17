@@ -30,6 +30,10 @@ type Configuration struct {
 	ResubmitAgentIntervalMinutes	uint	// Poll interval for resubmitting this agent on orchestrator agents API
 	AvailableLocalSnapshotHostsCommand	string
 	AvailableSnapshotHostsCommand	string
+	SnapshotVolumesFilter			string	// text pattern filtering agent logical volumes that are valid snapshots
+	MySQLServiceStopCommand			string
+	MySQLServiceStartCommand		string
+	MySQLServiceStatusCommand		string
 	AgentsServer			string			// HTTP address of the orchestrator agents server
 	HTTPPort				uint			// HTTP port on which this service listens
 	HTTPAuthUser		string				// Username for HTTP Basic authentication (blank disables authentication)
@@ -45,6 +49,10 @@ func NewConfiguration() *Configuration {
 		ResubmitAgentIntervalMinutes:	60,
 		AvailableLocalSnapshotHostsCommand:	"",
 		AvailableSnapshotHostsCommand:		"",
+		SnapshotVolumesFilter:			"",
+		MySQLServiceStopCommand:		"",
+		MySQLServiceStartCommand:		"",
+		MySQLServiceStatusCommand:		"",	
 		AgentsServer:					"",
 		HTTPPort:						3002,
 		HTTPAuthUser: 					"",

@@ -48,13 +48,14 @@ func (this *LogicalVolume) IsSnapshotValid() bool {
 }
 
 
-// LogicalVolume describes an LVM volume
+// Mount describes a file system mount point
 type Mount struct {
 	Path			string
 	Device			string
 	LVPath			string
 	FileSystem		string
 	IsMounted		bool
+	DiskUsage		int64
 }
 
 
@@ -152,6 +153,7 @@ func GetMount(mountPoint string) (Mount, error) {
 		mount.Path = lineTokens[1]
 		mount.FileSystem = lineTokens[2]
 		mount.LVPath, _ = GetLogicalVolumePath(mount.Device)
+		mount.DiskUsage, _ = DiskUsage(mountPoint)
 	}
 	return mount, nil
 }
@@ -160,6 +162,9 @@ func MountLV(mountPoint string, volumeName string) (Mount, error) {
 	mount := Mount {
 		Path: mountPoint,	
 		IsMounted: false,	
+	}
+	if volumeName == "" {
+		return mount, errors.New("Empty columeName in MountLV")
 	}
 	_, err := commandOutput(fmt.Sprintf("mount %s %s", volumeName, mountPoint))
 	if err != nil {
@@ -181,6 +186,23 @@ func Unmount(mountPoint string) (Mount, error) {
 }
 
 
+func DiskUsage(path string) (int64, error) {
+	var result int64
+
+	output, err := commandOutput(fmt.Sprintf("du -sb %s", path))
+	tokens, err := outputTokens(`[ \t]+`, output, err)
+	if err != nil {
+		return result, err
+	}
+	
+	for _, lineTokens := range tokens {
+		result, err = strconv.ParseInt(lineTokens[0], 10, 0)
+		return result, err
+	}
+	return result, err
+}
+
+
 func AvailableSnapshots(requireLocal bool) ([]string, error) {
 	var command string
 	if requireLocal { 
@@ -193,4 +215,22 @@ func AvailableSnapshots(requireLocal bool) ([]string, error) {
 
 	return hosts, err
 }
+
+
+func MySQLRunning() (bool, error) {
+	_, err := commandOutput(config.Config.MySQLServiceStatusCommand)
+	// status command exits with 0 when MySQL is running, or otherwise if not running
+	return err == nil, nil
+}
+
+func MySQLStop() error {
+	_, err := commandOutput(config.Config.MySQLServiceStopCommand)
+	return err
+}
+
+func MySQLStart() error {
+	_, err := commandOutput(config.Config.MySQLServiceStartCommand)
+	return err
+}
+
 
