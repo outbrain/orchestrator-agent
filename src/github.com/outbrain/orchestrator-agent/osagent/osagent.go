@@ -134,6 +134,20 @@ func GetLogicalVolumePath(volumeName string) (string, error) {
 }
 
 
+
+func GetLogicalVolumeFSType(volumeName string) (string, error) {
+	command := fmt.Sprintf("blkid %s", volumeName)
+	output, err := commandOutput(command)
+	lines, err := outputLines(output, err)
+	re := regexp.MustCompile(`TYPE="(.*?)"`)
+	for _, line := range lines {
+		fsType := re.FindStringSubmatch(line)[1]
+		return fsType, nil
+	}
+	return "", errors.New(fmt.Sprintf("Cannot find FS type for logical volume %s", volumeName))
+}
+
+
 func GetMount(mountPoint string) (Mount, error) {
 	mount := Mount {
 		Path: mountPoint,	
@@ -166,10 +180,16 @@ func MountLV(mountPoint string, volumeName string) (Mount, error) {
 	if volumeName == "" {
 		return mount, errors.New("Empty columeName in MountLV")
 	}
-	_, err := commandOutput(fmt.Sprintf("mount %s %s", volumeName, mountPoint))
-	if err != nil {
-		return mount, err
-	}
+	fsType, err := GetLogicalVolumeFSType(volumeName)
+	if err != nil {	return mount, err}
+
+	mountOptions := ""
+	if fsType == "xfs" {
+		mountOptions = "-o nouuid"
+	}	
+	_, err = commandOutput(fmt.Sprintf("mount %s %s %s", mountOptions, volumeName, mountPoint))
+	if err != nil {	return mount, err}
+
 	return GetMount(mountPoint)
 }
 
