@@ -31,6 +31,7 @@ type Configuration struct {
 	AvailableLocalSnapshotHostsCommand	string
 	AvailableSnapshotHostsCommand	string
 	SnapshotVolumesFilter			string	// text pattern filtering agent logical volumes that are valid snapshots
+	MySQLDatadirCommand				string	// command expected to present with @@datadir
 	MySQLServiceStopCommand			string
 	MySQLServiceStartCommand		string
 	MySQLServiceStatusCommand		string
@@ -50,6 +51,7 @@ func NewConfiguration() *Configuration {
 		AvailableLocalSnapshotHostsCommand:	"",
 		AvailableSnapshotHostsCommand:		"",
 		SnapshotVolumesFilter:			"",
+		MySQLDatadirCommand:			"",
 		MySQLServiceStopCommand:		"",
 		MySQLServiceStartCommand:		"",
 		MySQLServiceStatusCommand:		"",	

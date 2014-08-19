@@ -21,6 +21,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"strconv"
 	"regexp"
@@ -56,6 +57,7 @@ type Mount struct {
 	FileSystem		string
 	IsMounted		bool
 	DiskUsage		int64
+	MySQLDataPath	string
 }
 
 
@@ -168,6 +170,7 @@ func GetMount(mountPoint string) (Mount, error) {
 		mount.FileSystem = lineTokens[2]
 		mount.LVPath, _ = GetLogicalVolumePath(mount.Device)
 		mount.DiskUsage, _ = DiskUsage(mountPoint)
+		mount.MySQLDataPath, _ = HeuristicMySQLDataPath(mountPoint)
 	}
 	return mount, nil
 }
@@ -221,6 +224,35 @@ func DiskUsage(path string) (int64, error) {
 	}
 	return result, err
 }
+
+
+func HeuristicMySQLDataPath(mountPoint string) (string, error) {
+	datadir, err := getMySQLDataDir()
+	if err != nil {return "", err}
+	
+	heuristicFileName := "ibdata1"
+	
+	re := regexp.MustCompile(`/[^/]+(.*)`)
+	for {
+		heuristicFullPath := path.Join(mountPoint, datadir, heuristicFileName)
+		log.Debugf("search for %s", heuristicFullPath)
+		if _, err := os.Stat(heuristicFullPath); err == nil {
+		    return path.Join(mountPoint, datadir), nil
+		}
+		if datadir == "" {
+			return "", errors.New("Cannot detect MySQL datadir")
+		}
+		datadir = re.FindStringSubmatch(datadir)[1]
+	}
+}
+
+
+func getMySQLDataDir() (string, error) {
+	command := config.Config.MySQLDatadirCommand 
+	output, err := commandOutput(command)
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
 
 
 func AvailableSnapshots(requireLocal bool) ([]string, error) {
