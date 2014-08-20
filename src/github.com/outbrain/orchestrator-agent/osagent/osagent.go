@@ -226,6 +226,26 @@ func DiskUsage(path string) (int64, error) {
 }
 
 
+
+// DeleteMySQLDataDir self explanatory. Be responsible! This function does not verify the MySQL service is down
+func DeleteMySQLDataDir() error {
+	
+	directory, err := getMySQLDataDir() 
+	if err != nil {return err}
+
+	directory = strings.TrimSpace(directory)
+	if directory == "" {
+		return errors.New("refusing to delete empty directory")
+	}
+	if path.Dir(directory) == directory {
+		return errors.New(fmt.Sprintf("Directory %s seems to be root; refusing to delete", directory))
+	}
+	_, err = commandOutput(fmt.Sprintf("rm -rf %s/*", directory))
+
+	return err
+}
+
+
 func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 	datadir, err := getMySQLDataDir()
 	if err != nil {return "", err}
