@@ -32,6 +32,7 @@ type Configuration struct {
 	AvailableSnapshotHostsCommand	string
 	SnapshotVolumesFilter			string	// text pattern filtering agent logical volumes that are valid snapshots
 	MySQLDatadirCommand				string	// command expected to present with @@datadir
+	MySQLDeleteDatadirContentCommand	string // command which deletes all content from MySQL datadir (does not remvoe directory itself)
 	MySQLServiceStopCommand			string
 	MySQLServiceStartCommand		string
 	MySQLServiceStatusCommand		string
@@ -52,6 +53,7 @@ func NewConfiguration() *Configuration {
 		AvailableSnapshotHostsCommand:		"",
 		SnapshotVolumesFilter:			"",
 		MySQLDatadirCommand:			"",
+		MySQLDeleteDatadirContentCommand: "",
 		MySQLServiceStopCommand:		"",
 		MySQLServiceStartCommand:		"",
 		MySQLServiceStatusCommand:		"",	

@@ -240,7 +240,7 @@ func DeleteMySQLDataDir() error {
 	if path.Dir(directory) == directory {
 		return errors.New(fmt.Sprintf("Directory %s seems to be root; refusing to delete", directory))
 	}
-	_, err = commandOutput(fmt.Sprintf("rm -rf %s/*", directory))
+	_, err = commandOutput(config.Config.MySQLDeleteDatadirContentCommand)
 
 	return err
 }
