@@ -21,6 +21,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"io/ioutil"
 	"path"
 	"strings"
 	"strconv"
@@ -30,6 +31,9 @@ import (
 	"github.com/outbrain/orchestrator-agent/config"
 )
 
+const (
+	SeedTransferPort	= 21234
+)
 
 // LogicalVolume describes an LVM volume
 type LogicalVolume struct {
@@ -58,6 +62,7 @@ type Mount struct {
 	IsMounted		bool
 	DiskUsage		int64
 	MySQLDataPath	string
+	MySQLDiskUsage	int64
 }
 
 
@@ -66,18 +71,48 @@ func commandSplit(commandText string) (string, []string) {
 	return tokens[0], tokens[1:]
 }
 
+func execCmd(commandText string) (*exec.Cmd, string, error) {
+	commandBytes := []byte(commandText)
+	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-cmd-")
+	if err != nil {
+		return nil, "", log.Errore(err)
+	}
+	ioutil.WriteFile(tmpFile.Name(), commandBytes, 0644)
+	return exec.Command("bash", tmpFile.Name()), tmpFile.Name(), nil
+}
 
 // commandOutput executes a command and return output bytes
 func commandOutput(commandText string) ([]byte, error) {
-	commandName, commandArgs := commandSplit(commandText)
+//	commandBytes := []byte(commandText)
+//	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-")
+//	if err != nil {
+//		return nil, log.Errore(err)
+//	}
+//	ioutil.WriteFile(tmpFile.Name(), commandBytes, 0644)
+//	outputBytes, err := exec.Command("bash", tmpFile.Name()).Output()
 	
-	log.Debugf("commandOutput: %s", commandText)
-	outputBytes, err := exec.Command(commandName, commandArgs...).Output()
-	if err != nil {
-		return nil, log.Errore(err)
-	}
+	cmd, tmpFileName, err := execCmd(commandText)
+	if err != nil {	return nil, log.Errore(err)}
+	
+	outputBytes, err := cmd.Output()
+	if err != nil {	return nil, log.Errore(err)}
+//	commandName, commandArgs := commandSplit(commandText)
+//	
+//	log.Debugf("commandOutput: %s", commandText)
+//	outputBytes, err := exec.Command(commandName, commandArgs...).Output()
+//	if err != nil {	return nil, log.Errore(err)}
+	os.Remove(tmpFileName)
+	
 	return outputBytes, nil
 }
+
+// commandStart executes a command and does not wait for completion
+func commandStart(commandText string) error {
+	cmd, _, err := execCmd(commandText)
+	if err != nil {	return log.Errore(err)}
+	return cmd.Start()
+}
+
 
 func outputLines(commandOutput []byte, err error) ([]string, error) {
 	if err != nil {
@@ -171,6 +206,7 @@ func GetMount(mountPoint string) (Mount, error) {
 		mount.LVPath, _ = GetLogicalVolumePath(mount.Device)
 		mount.DiskUsage, _ = DiskUsage(mountPoint)
 		mount.MySQLDataPath, _ = HeuristicMySQLDataPath(mountPoint)
+		mount.MySQLDiskUsage, _ = DiskUsage(mount.MySQLDataPath)
 	}
 	return mount, nil
 }
@@ -230,7 +266,7 @@ func DiskUsage(path string) (int64, error) {
 // DeleteMySQLDataDir self explanatory. Be responsible! This function does not verify the MySQL service is down
 func DeleteMySQLDataDir() error {
 	
-	directory, err := getMySQLDataDir() 
+	directory, err := GetMySQLDataDir() 
 	if err != nil {return err}
 
 	directory = strings.TrimSpace(directory)
@@ -247,7 +283,7 @@ func DeleteMySQLDataDir() error {
 
 
 func HeuristicMySQLDataPath(mountPoint string) (string, error) {
-	datadir, err := getMySQLDataDir()
+	datadir, err := GetMySQLDataDir()
 	if err != nil {return "", err}
 	
 	heuristicFileName := "ibdata1"
@@ -267,12 +303,19 @@ func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 }
 
 
-func getMySQLDataDir() (string, error) {
+func GetMySQLDataDir() (string, error) {
 	command := config.Config.MySQLDatadirCommand 
 	output, err := commandOutput(command)
 	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
 }
 
+
+func GetMySQLPort() (int64, error) {
+	command := config.Config.MySQLPortCommand 
+	output, err := commandOutput(command)
+	if err != nil {return 0, err}
+	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
+}
 
 
 func AvailableSnapshots(requireLocal bool) ([]string, error) {
@@ -302,6 +345,24 @@ func MySQLStop() error {
 
 func MySQLStart() error {
 	_, err := commandOutput(config.Config.MySQLServiceStartCommand)
+	return err
+}
+
+
+func ReceiveMySQLSeedData() error {
+	directory, err := GetMySQLDataDir() 
+	if err != nil {return err}
+
+	err = commandStart(fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort))
+	return err
+}
+
+
+func SendMySQLSeedData(targetHostname string) error {
+	directory, err := GetMySQLDataDir() 
+	if err != nil {return err}
+
+	err = commandStart(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort))
 	return err
 }
 

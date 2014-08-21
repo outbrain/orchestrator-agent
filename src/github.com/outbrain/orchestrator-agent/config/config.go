@@ -32,10 +32,13 @@ type Configuration struct {
 	AvailableSnapshotHostsCommand	string
 	SnapshotVolumesFilter			string	// text pattern filtering agent logical volumes that are valid snapshots
 	MySQLDatadirCommand				string	// command expected to present with @@datadir
+	MySQLPortCommand				string	// command expected to present with @@port
 	MySQLDeleteDatadirContentCommand	string // command which deletes all content from MySQL datadir (does not remvoe directory itself)
 	MySQLServiceStopCommand			string
 	MySQLServiceStartCommand		string
 	MySQLServiceStatusCommand		string
+	ReceiveSeedDataCommand			string  // Accepts incoming data (e.g. tarball over netcat)
+	SendSeedDataCommand				string  // Sends date to remote host (e.g. tarball via netcat)
 	AgentsServer			string			// HTTP address of the orchestrator agents server
 	HTTPPort				uint			// HTTP port on which this service listens
 	HTTPAuthUser		string				// Username for HTTP Basic authentication (blank disables authentication)
@@ -53,10 +56,13 @@ func NewConfiguration() *Configuration {
 		AvailableSnapshotHostsCommand:		"",
 		SnapshotVolumesFilter:			"",
 		MySQLDatadirCommand:			"",
+		MySQLPortCommand:				"",
 		MySQLDeleteDatadirContentCommand: "",
 		MySQLServiceStopCommand:		"",
 		MySQLServiceStartCommand:		"",
 		MySQLServiceStatusCommand:		"",	
+		ReceiveSeedDataCommand:			"",	
+		SendSeedDataCommand:			"",	
 		AgentsServer:					"",
 		HTTPPort:						3002,
 		HTTPAuthUser: 					"",

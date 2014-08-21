@@ -199,6 +199,24 @@ func (this *HttpAPI) DiskUsage(params martini.Params, r render.Render, req *http
 
 
 
+// MySQLDiskUsage returns the number of bytes on the MySQL datadir
+func (this *HttpAPI) MySQLDiskUsage(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	datadir, err := osagent.GetMySQLDataDir() 
+	
+	output, err := osagent.DiskUsage(datadir)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
+
 // LocalSnapshots lists dc-local available snapshots for this host
 func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -292,6 +310,38 @@ func (this *HttpAPI) DeleteMySQLDataDir(params martini.Params, r render.Render, 
 
 
 
+// ReceiveMySQLSeedData
+func (this *HttpAPI) ReceiveMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	err := osagent.ReceiveMySQLSeedData()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, err == nil)
+}
+
+
+
+// ReceiveMySQLSeedData
+func (this *HttpAPI) SendMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	err := osagent.SendMySQLSeedData(params["targetHost"])
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, err == nil)
+}
+
+
+
 // RegisterRequests makes for the de-facto list of known API calls
 func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/hostname", this.Hostname) 
@@ -304,10 +354,13 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mountlv", this.MountLV) 
 	m.Get("/api/umount", this.Unmount) 
 	m.Get("/api/du", this.DiskUsage) 
+	m.Get("/api/mysql-du", this.MySQLDiskUsage) 
 	m.Get("/api/available-snapshots-local", this.AvailableLocalSnapshots) 
 	m.Get("/api/available-snapshots", this.AvailableSnapshots) 
 	m.Get("/api/mysql-status", this.MySQLRunning) 
 	m.Get("/api/mysql-stop", this.MySQLStop) 
 	m.Get("/api/mysql-start", this.MySQLStart) 
 	m.Get("/api/delete-mysql-datadir", this.DeleteMySQLDataDir) 
+	m.Get("/api/receive-mysql-seed-data", this.ReceiveMySQLSeedData) 
+	m.Get("/api/send-mysql-seed-data/:targetHost", this.SendMySQLSeedData) 
 }
