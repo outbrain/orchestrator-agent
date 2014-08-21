@@ -247,6 +247,21 @@ func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render, 
 }
 
 
+// MySQLPort returns the (heuristic) port on which MySQL executes
+func (this *HttpAPI) MySQLPort(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	output, err := osagent.GetMySQLPort()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
 // MySQLRunning checks whether the MySQL service is up
 func (this *HttpAPI) MySQLRunning(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -357,6 +372,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mysql-du", this.MySQLDiskUsage) 
 	m.Get("/api/available-snapshots-local", this.AvailableLocalSnapshots) 
 	m.Get("/api/available-snapshots", this.AvailableSnapshots) 
+	m.Get("/api/mysql-port", this.MySQLPort) 
 	m.Get("/api/mysql-status", this.MySQLRunning) 
 	m.Get("/api/mysql-stop", this.MySQLStop) 
 	m.Get("/api/mysql-start", this.MySQLStart) 
