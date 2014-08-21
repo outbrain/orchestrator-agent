@@ -327,15 +327,12 @@ func (this *HttpAPI) DeleteMySQLDataDir(params martini.Params, r render.Render, 
 
 // ReceiveMySQLSeedData
 func (this *HttpAPI) ReceiveMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+	var err error
+	if err = validateToken(req.URL.Query().Get("token")); err != nil {
 		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
-	err := osagent.ReceiveMySQLSeedData()
-	if err != nil {
-		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
-		return
-	}
+	go osagent.ReceiveMySQLSeedData()
 	r.JSON(200, err == nil)
 }
 
@@ -343,15 +340,17 @@ func (this *HttpAPI) ReceiveMySQLSeedData(params martini.Params, r render.Render
 
 // ReceiveMySQLSeedData
 func (this *HttpAPI) SendMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+	var err error
+	if err = validateToken(req.URL.Query().Get("token")); err != nil {
 		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
-	err := osagent.SendMySQLSeedData(params["targetHost"])
+	mount, err := osagent.GetMount(config.Config.SnapshotMountPoint)
 	if err != nil {
 		r.JSON(500, &APIResponse{Code:ERROR, Message: err.Error(),})
 		return
 	}
+	go osagent.SendMySQLSeedData(params["targetHost"], mount.MySQLDataPath)
 	r.JSON(200, err == nil)
 }
 

@@ -353,16 +353,18 @@ func ReceiveMySQLSeedData() error {
 	directory, err := GetMySQLDataDir() 
 	if err != nil {return err}
 
-	err = commandStart(fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort))
+	_, err = commandOutput(fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort))
+	if err != nil { return log.Errore(err)	}
 	return err
 }
 
 
-func SendMySQLSeedData(targetHostname string) error {
-	directory, err := GetMySQLDataDir() 
-	if err != nil {return err}
-
-	err = commandStart(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort))
+func SendMySQLSeedData(targetHostname string, directory string) error {
+	if directory == "" {
+		return log.Error("Empty directory in SendMySQLSeedData")
+	}
+	_, err := commandOutput(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort))
+	if err != nil { return log.Errore(err)	}
 	return err
 }
 
