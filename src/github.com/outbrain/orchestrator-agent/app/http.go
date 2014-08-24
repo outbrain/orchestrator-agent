@@ -14,42 +14,41 @@
    limitations under the License.
 */
 
-// 
+//
 package app
 
 import (
 	"fmt"
-	
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
-	"github.com/martini-contrib/auth"
 
-	nethttp "net/http" 
-		
-	"github.com/outbrain/orchestrator-agent/http"
-	"github.com/outbrain/orchestrator-agent/config"
-	"github.com/outbrain/orchestrator-agent/agent"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/auth"
+	"github.com/martini-contrib/render"
+
+	nethttp "net/http"
+
 	"github.com/outbrain/log"
+	"github.com/outbrain/orchestrator-agent/agent"
+	"github.com/outbrain/orchestrator-agent/config"
+	"github.com/outbrain/orchestrator-agent/http"
 )
 
-
-// Http starts serving HTTP (api/web) requests 
+// Http starts serving HTTP (api/web) requests
 func Http() {
 	m := martini.Classic()
 	if config.Config.HTTPAuthUser != "" {
 		m.Use(auth.Basic(config.Config.HTTPAuthUser, config.Config.HTTPAuthPassword))
-    }
-	
+	}
+
 	// Render html templates from templates directory
 	m.Use(render.Renderer(render.Options{
-		Directory: "resources",
-		Layout: "templates/layout",	
+		Directory:       "resources",
+		Layout:          "templates/layout",
 		HTMLContentType: "text/html",
 	}))
 	m.Use(martini.Static("resources/public"))
 
 	go agent.ContinuousOperation()
-	
+
 	log.Infof("Starting HTTP on port %d", config.Config.HTTPPort)
 
 	http.API.RegisterRequests(m)
@@ -57,4 +56,3 @@ func Http() {
 	// Serve
 	nethttp.ListenAndServe(fmt.Sprintf(":%d", config.Config.HTTPPort), m)
 }
-

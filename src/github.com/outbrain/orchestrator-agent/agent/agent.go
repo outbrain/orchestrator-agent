@@ -17,25 +17,28 @@
 package agent
 
 import (
-	"time"
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/log"
+	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/osagent"
 )
 
-
 func SubmitAgent() error {
-	hostname, err := osagent.Hostname() 
-	if err != nil { return log.Errore(err) }
-	
+	hostname, err := osagent.Hostname()
+	if err != nil {
+		return log.Errore(err)
+	}
+
 	url := fmt.Sprintf("%s/api/submit-agent/%s/%d/%s", config.Config.AgentsServer, hostname, config.Config.HTTPPort, ProcessToken.Hash)
 	log.Debugf("Submitting this agent: %s", url)
-	
+
 	response, err := http.Get(url)
-	if err != nil {return log.Errore(err)}
+	if err != nil {
+		return log.Errore(err)
+	}
 
 	log.Debugf("response: %+v", response)
 	return err
@@ -45,18 +48,18 @@ func SubmitAgent() error {
 // - agent is submitted into orchestrator
 func ContinuousOperation() {
 	log.Infof("Starting continuous operation")
-    tick := time.Tick(time.Duration(config.Config.ContinuousPollSeconds) * time.Second)
-    resubmitTick := time.Tick(time.Duration(config.Config.ResubmitAgentIntervalMinutes) * time.Minute)
-    
+	tick := time.Tick(time.Duration(config.Config.ContinuousPollSeconds) * time.Second)
+	resubmitTick := time.Tick(time.Duration(config.Config.ResubmitAgentIntervalMinutes) * time.Minute)
+
 	SubmitAgent()
-    for _ = range tick {
-    	// Do stuff
-    	
-    	// See if we should also forget instances/agents (lower frequency)
+	for _ = range tick {
+		// Do stuff
+
+		// See if we should also forget instances/agents (lower frequency)
 		select {
-			case <- resubmitTick:
-				SubmitAgent()
-			default:
+		case <-resubmitTick:
+			SubmitAgent()
+		default:
 		}
 	}
 }

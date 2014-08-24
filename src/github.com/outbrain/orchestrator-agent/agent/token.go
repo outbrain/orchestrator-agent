@@ -17,11 +17,10 @@
 package agent
 
 import (
-    "crypto/rand"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 )
-
 
 func GetHash(input []byte) string {
 	hasher := sha256.New()
@@ -29,24 +28,22 @@ func GetHash(input []byte) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-
 func GetRandomData() []byte {
 	size := 64
 	rb := make([]byte, size)
 	_, _ = rand.Read(rb)
 	return rb
- }
-
+}
 
 // Token is used to identify and validate requests to this service
 type Token struct {
-	Hash	string
-}	
+	Hash string
+}
 
 var ProcessToken *Token = NewToken()
 
 func NewToken() *Token {
-	return &Token {
+	return &Token{
 		Hash: GetHash(GetRandomData()),
 	}
 }

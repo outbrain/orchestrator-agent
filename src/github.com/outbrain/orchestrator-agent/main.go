@@ -14,18 +14,18 @@
    limitations under the License.
 */
 
-package main 
+package main
 
 import (
 	"flag"
 	"os"
 	"os/signal"
 	"syscall"
-	
+
+	"github.com/outbrain/log"
 	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/app"
 	"github.com/outbrain/orchestrator-agent/config"
-	"github.com/outbrain/log"
 )
 
 func acceptSignal() {
@@ -37,15 +37,14 @@ func acceptSignal() {
 	log.Fatalf("Got signal: %+v", sig)
 }
 
-
 // main is the application's entry point. It will either spawn a CLI or HTTP itnerfaces.
 func main() {
 	configFile := flag.String("config", "", "config file name")
 	verbose := flag.Bool("verbose", false, "verbose")
 	debug := flag.Bool("debug", false, "debug mode (very verbose)")
 	stack := flag.Bool("stack", false, "add stack trace upon error")
-	flag.Parse();
-	
+	flag.Parse()
+
 	log.SetLevel(log.ERROR)
 	if *verbose {
 		log.SetLevel(log.INFO)
@@ -68,10 +67,10 @@ func main() {
 	if len(config.Config.AgentsServer) == 0 {
 		log.Fatal("AgentsServer unconfigured. Please set to the HTTP address orchestrator serves agents (port is by default 3001)")
 	}
-		
+
 	log.Debugf("Process token: %s", agent.ProcessToken.Hash)
-	
+
 	go acceptSignal()
-	
+
 	app.Http()
 }
