@@ -309,11 +309,11 @@ func (this *HttpAPI) ReceiveMySQLSeedData(params martini.Params, r render.Render
 		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
 		return
 	}
-	go osagent.ReceiveMySQLSeedData()
+	go osagent.ReceiveMySQLSeedData(params["seedId"])
 	r.JSON(200, err == nil)
 }
 
-// ReceiveMySQLSeedData
+// SendMySQLSeedData
 func (this *HttpAPI) SendMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
 	var err error
 	if err = validateToken(req.URL.Query().Get("token")); err != nil {
@@ -325,7 +325,18 @@ func (this *HttpAPI) SendMySQLSeedData(params martini.Params, r render.Render, r
 		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
 		return
 	}
-	go osagent.SendMySQLSeedData(params["targetHost"], mount.MySQLDataPath)
+	go osagent.SendMySQLSeedData(params["targetHost"], mount.MySQLDataPath, params["seedId"])
+	r.JSON(200, err == nil)
+}
+
+// AbortSeed
+func (this *HttpAPI) AbortSeed(params martini.Params, r render.Render, req *http.Request) {
+	var err error
+	if err = validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	osagent.AbortSeed(params["seedId"])
 	r.JSON(200, err == nil)
 }
 
@@ -349,6 +360,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mysql-stop", this.MySQLStop)
 	m.Get("/api/mysql-start", this.MySQLStart)
 	m.Get("/api/delete-mysql-datadir", this.DeleteMySQLDataDir)
-	m.Get("/api/receive-mysql-seed-data", this.ReceiveMySQLSeedData)
-	m.Get("/api/send-mysql-seed-data/:targetHost", this.SendMySQLSeedData)
+	m.Get("/api/receive-mysql-seed-data/:seedId", this.ReceiveMySQLSeedData)
+	m.Get("/api/send-mysql-seed-data/:targetHost/:seedId", this.SendMySQLSeedData)
+	m.Get("/api/abort-seed/:seedId", this.AbortSeed)
 }

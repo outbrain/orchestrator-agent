@@ -35,6 +35,8 @@ const (
 	SeedTransferPort = 21234
 )
 
+var activeCommands map[string](*exec.Cmd) = make(map[string](*exec.Cmd))
+
 // LogicalVolume describes an LVM volume
 type LogicalVolume struct {
 	Name            string
@@ -79,6 +81,7 @@ func execCmd(commandText string) (*exec.Cmd, string, error) {
 		return nil, "", log.Errore(err)
 	}
 	ioutil.WriteFile(tmpFile.Name(), commandBytes, 0644)
+	log.Debugf("execCmd: %s", commandText)
 	return exec.Command("bash", tmpFile.Name()), tmpFile.Name(), nil
 }
 
@@ -98,13 +101,21 @@ func commandOutput(commandText string) ([]byte, error) {
 	return outputBytes, nil
 }
 
-// commandStart executes a command and does not wait for completion
-func commandStart(commandText string) error {
-	cmd, _, err := execCmd(commandText)
+// commandRun executes a command
+func commandRun(commandText string, onCommand func (*exec.Cmd)) error {
+	cmd, tmpFileName, err := execCmd(commandText)
 	if err != nil {
 		return log.Errore(err)
 	}
-	return cmd.Start()
+	onCommand(cmd)
+
+	err = cmd.Run()
+	if err != nil {
+		return log.Errore(err)
+	}
+	os.Remove(tmpFileName)
+
+	return nil
 }
 
 func outputLines(commandOutput []byte, err error) ([]string, error) {
@@ -339,26 +350,46 @@ func MySQLStart() error {
 	return err
 }
 
-func ReceiveMySQLSeedData() error {
+func ReceiveMySQLSeedData(seedId string) error {
 	directory, err := GetMySQLDataDir()
 	if err != nil {
-		return err
+		return log.Errore(err)
 	}
+	
+	err = commandRun(
+		fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort),
+		func (cmd *exec.Cmd) {
+			activeCommands[seedId] = cmd
+		})
+	if err != nil {
+		return log.Errore(err)
+	}
+	
+	return err
+}
 
-	_, err = commandOutput(fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort))
+
+func SendMySQLSeedData(targetHostname string, directory string, seedId string) error {
+	if directory == "" {
+		return log.Error("Empty directory in SendMySQLSeedData")
+	}
+	err := commandRun(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort),
+		func (cmd *exec.Cmd) {
+			activeCommands[seedId] = cmd
+		})
 	if err != nil {
 		return log.Errore(err)
 	}
 	return err
 }
 
-func SendMySQLSeedData(targetHostname string, directory string) error {
-	if directory == "" {
-		return log.Error("Empty directory in SendMySQLSeedData")
+
+func AbortSeed(seedId string) error {
+	if cmd, ok := activeCommands[seedId]; ok {
+		log.Debugf("Killing process %d", cmd.Process.Pid)
+		return cmd.Process.Kill()
+	} else {
+		log.Debug("Not killing: Process not found")
 	}
-	_, err := commandOutput(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort))
-	if err != nil {
-		return log.Errore(err)
-	}
-	return err
+	return nil
 }
