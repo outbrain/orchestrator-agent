@@ -284,6 +284,18 @@ func DeleteMySQLDataDir() error {
 	return err
 }
 
+
+
+
+// PostCopy executes a post-copy command -- after LVM copy is done, before service starts. Some cleanup may go here.
+func PostCopy() error {
+	_, err := commandOutput(config.Config.PostCopyCommand)
+	return err
+}
+
+
+
+
 func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 	datadir, err := GetMySQLDataDir()
 	if err != nil {

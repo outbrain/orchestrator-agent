@@ -14,6 +14,7 @@
     "MySQLServiceStatusCommand":    "/etc/init.d/mysqld status",  
     "ReceiveSeedDataCommand":       "echo 'not implemented here'",  
     "SendSeedDataCommand":          "echo 'not implemented here'",  
+    "PostCopyCommand":              "echo 'post copy'",
     "HTTPPort": 3002,
     "HTTPAuthUser": "",
     "HTTPAuthPassword": ""
