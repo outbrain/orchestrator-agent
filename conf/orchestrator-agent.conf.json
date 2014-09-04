@@ -6,7 +6,7 @@
     "AvailableLocalSnapshotHostsCommand": "echo snoach-obil",
     "AvailableSnapshotHostsCommand": "echo localhost\nsnoach-obil",
     "SnapshotVolumesFilter": "-my-snapshot-",
-    "MySQLDatadirCommand": "echo '/var/lib/mysql'",
+    "MySQLDatadirCommand": "echo '~/tmp'",
     "MySQLPortCommand": "echo '3306'",
     "MySQLDeleteDatadirContentCommand": "echo 'will not do'",
     "MySQLServiceStopCommand":      "/etc/init.d/mysqld stop",

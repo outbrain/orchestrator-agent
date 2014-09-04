@@ -355,6 +355,31 @@ func (this *HttpAPI) AbortSeed(params martini.Params, r render.Render, req *http
 	r.JSON(200, err == nil)
 }
 
+
+// SeedCommandCompleted
+func (this *HttpAPI) SeedCommandCompleted(params martini.Params, r render.Render, req *http.Request) {
+	var err error
+	if err = validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	output := osagent.SeedCommandCompleted(params["seedId"])
+	r.JSON(200, output)
+}
+
+
+// SeedCommandCompleted
+func (this *HttpAPI) SeedCommandSucceeded(params martini.Params, r render.Render, req *http.Request) {
+	var err error
+	if err = validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	output := osagent.SeedCommandSucceeded(params["seedId"])
+	r.JSON(200, output)
+}
+
+
 // RegisterRequests makes for the de-facto list of known API calls
 func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/hostname", this.Hostname)
@@ -379,4 +404,6 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/receive-mysql-seed-data/:seedId", this.ReceiveMySQLSeedData)
 	m.Get("/api/send-mysql-seed-data/:targetHost/:seedId", this.SendMySQLSeedData)
 	m.Get("/api/abort-seed/:seedId", this.AbortSeed)
+	m.Get("/api/seed-command-completed/:seedId", this.SeedCommandCompleted)
+	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
 }

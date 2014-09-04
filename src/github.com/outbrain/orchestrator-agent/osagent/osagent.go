@@ -372,6 +372,7 @@ func ReceiveMySQLSeedData(seedId string) error {
 		fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort),
 		func (cmd *exec.Cmd) {
 			activeCommands[seedId] = cmd
+			log.Debug("ReceiveMySQLSeedData command completed")
 		})
 	if err != nil {
 		return log.Errore(err)
@@ -388,11 +389,32 @@ func SendMySQLSeedData(targetHostname string, directory string, seedId string) e
 	err := commandRun(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort),
 		func (cmd *exec.Cmd) {
 			activeCommands[seedId] = cmd
+			log.Debug("SendMySQLSeedData command completed")
 		})
 	if err != nil {
 		return log.Errore(err)
 	}
 	return err
+}
+
+
+func SeedCommandCompleted(seedId string) bool {
+	if cmd, ok := activeCommands[seedId]; ok {
+		if cmd.ProcessState != nil {
+			return cmd.ProcessState.Exited()
+		}
+	} 
+	return false
+}
+
+
+func SeedCommandSucceeded(seedId string) bool {
+	if cmd, ok := activeCommands[seedId]; ok {
+		if cmd.ProcessState != nil {
+			return cmd.ProcessState.Success()
+		}
+	} 
+	return false
 }
 
 
