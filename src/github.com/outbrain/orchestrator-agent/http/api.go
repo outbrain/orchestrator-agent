@@ -303,6 +303,24 @@ func (this *HttpAPI) DeleteMySQLDataDir(params martini.Params, r render.Render, 
 }
 
 
+
+// GetMySQLDataDirAvailableDiskSpace returns the number of bytes free within the MySQL datadir mount
+func (this *HttpAPI) GetMySQLDataDirAvailableDiskSpace(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	output, err := osagent.GetMySQLDataDirAvailableDiskSpace()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
+
+
 // PostCopy
 func (this *HttpAPI) PostCopy(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -400,6 +418,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mysql-stop", this.MySQLStop)
 	m.Get("/api/mysql-start", this.MySQLStart)
 	m.Get("/api/delete-mysql-datadir", this.DeleteMySQLDataDir)
+	m.Get("/api/mysql-datadir-available-space", this.GetMySQLDataDirAvailableDiskSpace)
 	m.Get("/api/post-copy", this.PostCopy)
 	m.Get("/api/receive-mysql-seed-data/:seedId", this.ReceiveMySQLSeedData)
 	m.Get("/api/send-mysql-seed-data/:targetHost/:seedId", this.SendMySQLSeedData)

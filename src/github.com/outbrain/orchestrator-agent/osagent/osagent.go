@@ -286,6 +286,26 @@ func DeleteMySQLDataDir() error {
 
 
 
+func GetMySQLDataDirAvailableDiskSpace() (int64, error) {
+	directory, err := GetMySQLDataDir()
+	if err != nil {
+		return 0, log.Errore(err)
+	}
+	
+	output, err := commandOutput(fmt.Sprintf("df -PT %s | sed -e /^Filesystem/d", directory))
+	if err != nil {
+		return 0, log.Errore(err)
+	}
+	
+	tokens, err := outputTokens(`[ \t]+`, output, err)
+	for _, lineTokens := range tokens {
+		result, err := strconv.ParseInt(lineTokens[4], 10, 0)
+		return result, err
+	}
+	return 0, log.Errore(errors.New(fmt.Sprintf("No rows found by df in GetMySQLDataDirAvailableDiskSpace, %s", directory)))
+}
+
+
 
 // PostCopy executes a post-copy command -- after LVM copy is done, before service starts. Some cleanup may go here.
 func PostCopy() error {
