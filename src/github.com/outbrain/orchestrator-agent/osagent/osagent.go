@@ -292,7 +292,7 @@ func GetMySQLDataDirAvailableDiskSpace() (int64, error) {
 		return 0, log.Errore(err)
 	}
 	
-	output, err := commandOutput(fmt.Sprintf("df -PT %s | sed -e /^Filesystem/d", directory))
+	output, err := commandOutput(fmt.Sprintf("df -PT -B 1 %s | sed -e /^Filesystem/d", directory))
 	if err != nil {
 		return 0, log.Errore(err)
 	}
