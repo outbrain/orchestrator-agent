@@ -236,6 +236,12 @@ func MountLV(mountPoint string, volumeName string) (Mount, error) {
 	return GetMount(mountPoint)
 }
 
+func RemoveLV(volumeName string) error {
+	_, err := commandOutput(fmt.Sprintf("lvremove --force %s", volumeName))
+	return err
+}
+
+
 func Unmount(mountPoint string) (Mount, error) {
 	mount := Mount{
 		Path:      mountPoint,
