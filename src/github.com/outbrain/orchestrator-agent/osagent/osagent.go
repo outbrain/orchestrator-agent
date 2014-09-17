@@ -242,6 +242,12 @@ func RemoveLV(volumeName string) error {
 }
 
 
+func CreateSnapshot() error {
+	_, err := commandOutput(config.Config.CreateSnapshotCommand)
+	return err
+}
+
+
 func Unmount(mountPoint string) (Mount, error) {
 	mount := Mount{
 		Path:      mountPoint,

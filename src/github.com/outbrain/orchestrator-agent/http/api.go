@@ -223,6 +223,23 @@ func (this *HttpAPI) MySQLDiskUsage(params martini.Params, r render.Render, req 
 	r.JSON(200, output)
 }
 
+
+
+// CreateSnapshot lists dc-local available snapshots for this host
+func (this *HttpAPI) CreateSnapshot(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	err := osagent.CreateSnapshot()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, err == nil)
+}
+
+
 // LocalSnapshots lists dc-local available snapshots for this host
 func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -431,6 +448,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/umount", this.Unmount)
 	m.Get("/api/du", this.DiskUsage)
 	m.Get("/api/mysql-du", this.MySQLDiskUsage)
+	m.Get("/api/create-snapshot", this.CreateSnapshot)
 	m.Get("/api/available-snapshots-local", this.AvailableLocalSnapshots)
 	m.Get("/api/available-snapshots", this.AvailableSnapshots)
 	m.Get("/api/mysql-port", this.MySQLPort)

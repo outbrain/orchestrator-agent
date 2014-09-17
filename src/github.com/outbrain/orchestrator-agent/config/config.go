@@ -28,15 +28,16 @@ type Configuration struct {
 	SnapshotMountPoint                 string // The single, agreed-upon mountpoint for logical volume snapshots
 	ContinuousPollSeconds              uint   // Poll interval for continuous operation
 	ResubmitAgentIntervalMinutes       uint   // Poll interval for resubmitting this agent on orchestrator agents API
-	AvailableLocalSnapshotHostsCommand string
-	AvailableSnapshotHostsCommand      string
+	CreateSnapshotCommand			   string // Command which creates a snapshot logical volume. It's a "do it yourself" implementation 
+	AvailableLocalSnapshotHostsCommand string // Command which returns list of hosts (one host per line) with available snapshots in local datacenter
+	AvailableSnapshotHostsCommand      string // Command which returns list of hosts (one host per line) with available snapshots in any datacenter
 	SnapshotVolumesFilter              string // text pattern filtering agent logical volumes that are valid snapshots
 	MySQLDatadirCommand                string // command expected to present with @@datadir
 	MySQLPortCommand                   string // command expected to present with @@port
 	MySQLDeleteDatadirContentCommand   string // command which deletes all content from MySQL datadir (does not remvoe directory itself)
-	MySQLServiceStopCommand            string
-	MySQLServiceStartCommand           string
-	MySQLServiceStatusCommand          string
+	MySQLServiceStopCommand            string // Command to stop mysql, e.g. /etc/init.d/mysql stop
+	MySQLServiceStartCommand           string // Command to start mysql, e.g. /etc/init.d/mysql start
+	MySQLServiceStatusCommand          string // Command to check mysql status. Expects 0 return value when running, non-zero when not running, e.g. /etc/init.d/mysql status
 	ReceiveSeedDataCommand             string // Accepts incoming data (e.g. tarball over netcat)
 	SendSeedDataCommand                string // Sends date to remote host (e.g. tarball via netcat)
 	PostCopyCommand			   		   string // command that is executed after seed is done and before MySQL starts
@@ -53,6 +54,7 @@ func NewConfiguration() *Configuration {
 		SnapshotMountPoint:                 "",
 		ContinuousPollSeconds:              60,
 		ResubmitAgentIntervalMinutes:       60,
+		CreateSnapshotCommand:				"",
 		AvailableLocalSnapshotHostsCommand: "",
 		AvailableSnapshotHostsCommand:      "",
 		SnapshotVolumesFilter:              "",
