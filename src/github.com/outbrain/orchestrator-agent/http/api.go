@@ -268,6 +268,23 @@ func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render, 
 	r.JSON(200, output)
 }
 
+
+
+// returns rows in tail of mysql error log
+func (this *HttpAPI) MySQLErrorLogTail(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	output, err := osagent.MySQLErrorLogTail()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, output)
+}
+
+
 // MySQLPort returns the (heuristic) port on which MySQL executes
 func (this *HttpAPI) MySQLPort(params martini.Params, r render.Render, req *http.Request) {
 	if err := validateToken(req.URL.Query().Get("token")); err != nil {
@@ -451,6 +468,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/create-snapshot", this.CreateSnapshot)
 	m.Get("/api/available-snapshots-local", this.AvailableLocalSnapshots)
 	m.Get("/api/available-snapshots", this.AvailableSnapshots)
+	m.Get("/api/mysql-error-log-tail", this.MySQLErrorLogTail)
 	m.Get("/api/mysql-port", this.MySQLPort)
 	m.Get("/api/mysql-status", this.MySQLRunning)
 	m.Get("/api/mysql-stop", this.MySQLStop)

@@ -378,6 +378,14 @@ func AvailableSnapshots(requireLocal bool) ([]string, error) {
 	return hosts, err
 }
 
+
+func MySQLErrorLogTail() ([]string, error) {
+	output, err := commandOutput(`tail -n 20 $(egrep "log[-_]error" /etc/my.cnf | cut -d "=" -f 2)`)
+	tail, err := outputLines(output, err)
+	return tail, err
+}
+
+
 func MySQLRunning() (bool, error) {
 	_, err := commandOutput(config.Config.MySQLServiceStatusCommand)
 	// status command exits with 0 when MySQL is running, or otherwise if not running
