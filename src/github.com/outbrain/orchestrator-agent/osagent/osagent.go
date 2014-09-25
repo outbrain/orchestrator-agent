@@ -102,7 +102,7 @@ func commandOutput(commandText string) ([]byte, error) {
 }
 
 // commandRun executes a command
-func commandRun(commandText string, onCommand func (*exec.Cmd)) error {
+func commandRun(commandText string, onCommand func(*exec.Cmd)) error {
 	cmd, tmpFileName, err := execCmd(commandText)
 	if err != nil {
 		return log.Errore(err)
@@ -241,12 +241,10 @@ func RemoveLV(volumeName string) error {
 	return err
 }
 
-
 func CreateSnapshot() error {
 	_, err := commandOutput(config.Config.CreateSnapshotCommand)
 	return err
 }
-
 
 func Unmount(mountPoint string) (Mount, error) {
 	mount := Mount{
@@ -296,19 +294,17 @@ func DeleteMySQLDataDir() error {
 	return err
 }
 
-
-
 func GetMySQLDataDirAvailableDiskSpace() (int64, error) {
 	directory, err := GetMySQLDataDir()
 	if err != nil {
 		return 0, log.Errore(err)
 	}
-	
+
 	output, err := commandOutput(fmt.Sprintf("df -PT -B 1 %s | sed -e /^Filesystem/d", directory))
 	if err != nil {
 		return 0, log.Errore(err)
 	}
-	
+
 	tokens, err := outputTokens(`[ \t]+`, output, err)
 	for _, lineTokens := range tokens {
 		result, err := strconv.ParseInt(lineTokens[4], 10, 0)
@@ -317,16 +313,11 @@ func GetMySQLDataDirAvailableDiskSpace() (int64, error) {
 	return 0, log.Errore(errors.New(fmt.Sprintf("No rows found by df in GetMySQLDataDirAvailableDiskSpace, %s", directory)))
 }
 
-
-
 // PostCopy executes a post-copy command -- after LVM copy is done, before service starts. Some cleanup may go here.
 func PostCopy() error {
 	_, err := commandOutput(config.Config.PostCopyCommand)
 	return err
 }
-
-
-
 
 func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 	datadir, err := GetMySQLDataDir()
@@ -378,13 +369,11 @@ func AvailableSnapshots(requireLocal bool) ([]string, error) {
 	return hosts, err
 }
 
-
 func MySQLErrorLogTail() ([]string, error) {
 	output, err := commandOutput(`tail -n 20 $(egrep "log[-_]error" /etc/my.cnf | cut -d "=" -f 2)`)
 	tail, err := outputLines(output, err)
 	return tail, err
 }
-
 
 func MySQLRunning() (bool, error) {
 	_, err := commandOutput(config.Config.MySQLServiceStatusCommand)
@@ -407,27 +396,26 @@ func ReceiveMySQLSeedData(seedId string) error {
 	if err != nil {
 		return log.Errore(err)
 	}
-	
+
 	err = commandRun(
 		fmt.Sprintf("%s %s %d", config.Config.ReceiveSeedDataCommand, directory, SeedTransferPort),
-		func (cmd *exec.Cmd) {
+		func(cmd *exec.Cmd) {
 			activeCommands[seedId] = cmd
 			log.Debug("ReceiveMySQLSeedData command completed")
 		})
 	if err != nil {
 		return log.Errore(err)
 	}
-	
+
 	return err
 }
-
 
 func SendMySQLSeedData(targetHostname string, directory string, seedId string) error {
 	if directory == "" {
 		return log.Error("Empty directory in SendMySQLSeedData")
 	}
 	err := commandRun(fmt.Sprintf("%s %s %s %d", config.Config.SendSeedDataCommand, directory, targetHostname, SeedTransferPort),
-		func (cmd *exec.Cmd) {
+		func(cmd *exec.Cmd) {
 			activeCommands[seedId] = cmd
 			log.Debug("SendMySQLSeedData command completed")
 		})
@@ -437,26 +425,23 @@ func SendMySQLSeedData(targetHostname string, directory string, seedId string) e
 	return err
 }
 
-
 func SeedCommandCompleted(seedId string) bool {
 	if cmd, ok := activeCommands[seedId]; ok {
 		if cmd.ProcessState != nil {
 			return cmd.ProcessState.Exited()
 		}
-	} 
+	}
 	return false
 }
-
 
 func SeedCommandSucceeded(seedId string) bool {
 	if cmd, ok := activeCommands[seedId]; ok {
 		if cmd.ProcessState != nil {
 			return cmd.ProcessState.Success()
 		}
-	} 
+	}
 	return false
 }
-
 
 func AbortSeed(seedId string) error {
 	if cmd, ok := activeCommands[seedId]; ok {
