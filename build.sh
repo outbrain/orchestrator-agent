@@ -5,7 +5,7 @@
 # Requires fpm: https://github.com/jordansissel/fpm
 #
 
-release_version="1.1.14"
+release_version="1.1.15"
 release_dir=/tmp/orchestrator-agent-release
 release_files_dir=$release_dir/orchestrator-agent
 rm -rf $release_dir/*
@@ -14,6 +14,7 @@ mkdir -p $release_files_dir/usr/local
 mkdir -p $release_files_dir/etc/init.d
 
 cd  $(dirname $0)
+for f in $(find . -name "*.go"); do go fmt $f; done
 
 rsync -av ./conf $release_files_dir/usr/local/orchestrator-agent/
 cp etc/init.d/orchestrator-agent.bash $release_files_dir/etc/init.d/orchestrator-agent
