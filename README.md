@@ -79,7 +79,9 @@ At this point **orchestrator** becomes the major player; having multiple **orche
 coordinate operations such as snapshot mounting, space cleanup, send and receive so as to establish a successful seed
 (a binary copy of a MySQL data directory).
  
-
+**orchestrator-agent** only provides the minimal and required operating system functionality and does not interact
+with the MySQL service directly (i.e. no credentials required and no SQL queries invoked). Any and all queries are
+invoked by the centralized **orchestrator** service.
   
 
 #### Requirements:
