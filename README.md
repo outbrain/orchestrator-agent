@@ -61,6 +61,26 @@ availability of the snapshot along with any metadata required on cluster/DC.
 - Unmount snapshot
 - etc.
   
+  
+#### The orchestrator & orchestrator-agent architecture
+
+**orchestrator** is a standalone, centralized service/command line tool. When acting as a service, it provides with web API
+and web interface to allow replication topology refactoring, long query control, and more.
+
+Coupled with **orchestrator-agent**, **orchestrator** is further able to assist in seeding new/corrupt servers. 
+**orchestrator-agent** does not initiate anything by itself, but is in fact controlled by **orchestrator**.
+
+When started, **orchestrator-agent** chooses a random, secret *token* and attempts to connect to the centralized **orchestrator**
+service API (location configurable). It then registers at the **orchestrator** service with its secret token. 
+
+**orchestrator-agent** then serves via HTTP API, and for all but the simplest commands requires the secret token.
+
+At this point **orchestrator** becomes the major player; having multiple **orchestrator-agent** registered it is able to
+coordinate operations such as snapshot mounting, space cleanup, send and receive so as to establish a successful seed
+(a binary copy of a MySQL data directory).
+ 
+
+  
 
 #### Requirements:
 
