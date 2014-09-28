@@ -34,6 +34,37 @@ backup/restore/orchestration capabilities in mind.
 
 - Linux, 64bit. Tested on CentOS 5 and Ubuntu Server 12.04+
 
+#### The Outbrain seed method
+
+The following does not discuss hard-backups where binary/logical data is written to an external/remote disk or a tape.
+
+At Outbrain we use LVM snapshots. Each MySQL replication topology has designated slaves which serve as snapshot servers.
+These servers do LVM snapshots daily, and keep such snapshots open for a few days. Thus it is possible that a server
+has, say, 5 open (and unmounted) LVM snapshots at a given time.  
+
+Upon need, we are able to mount any such snapshot in near zero time and restart MySQL on the host using mounted data directory.
+We are thus able to recover any one of few days back at speed of InnoDB crash-recovery.
+
+This serves two purposes: an immediate recovery/sanity check for destructive operations (unintentional or malicious `UPDATE` or `DROP`)
+as well as a seed source for new/corrupt servers.
+
+The choice of snapshot slaves is not random; we have multiple data centers and we keep at least one snapshot server per topology per data center,
+such that upon need we can make DC-local copies. For this purpose, the daily snapshot process reports, upon success, the
+availability of the snapshot along with any metadata required on cluster/DC.
+
+**orchestrator-agent** thus depends on external (configurable) commands to:
+
+- Detect where in local and remote DCs it can find an appropriate snapshot
+- Find said snapshot on server, mount it
+- Stop MySQL on target host, clear data on MySQL data directory
+- Initiate send/receive process
+- Cleanup data after copy (e.g. remove `pid` files if any)
+- Unmount snapshot
+- etc.
+  
+
+Authored by [Shlomi Noach](https://github.com/shlomi-noach) at [Outbrain](https://github.com/outbrain)
+
 
 
  
