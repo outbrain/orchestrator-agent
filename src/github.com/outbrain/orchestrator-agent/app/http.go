@@ -54,5 +54,13 @@ func Http() {
 	http.API.RegisterRequests(m)
 
 	// Serve
-	nethttp.ListenAndServe(fmt.Sprintf(":%d", config.Config.HTTPPort), m)
+	if config.Config.UseSSL {
+		log.Info("Serving via SSL")
+		err := nethttp.ListenAndServeTLS(fmt.Sprintf(":%d", config.Config.HTTPPort), config.Config.SSLCertFile, config.Config.SSLPrivateKeyFile, m)
+		if err != nil {
+			log.Fatale(err)
+		}
+	} else {
+		nethttp.ListenAndServe(fmt.Sprintf(":%d", config.Config.HTTPPort), m)
+	}
 }

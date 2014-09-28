@@ -5,7 +5,7 @@
 # Requires fpm: https://github.com/jordansissel/fpm
 #
 
-release_version="1.1.15"
+release_version="1.1.16"
 release_dir=/tmp/orchestrator-agent-release
 release_files_dir=$release_dir/orchestrator-agent
 rm -rf $release_dir/*

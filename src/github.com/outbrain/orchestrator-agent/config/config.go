@@ -45,6 +45,9 @@ type Configuration struct {
 	HTTPPort                           uint   // HTTP port on which this service listens
 	HTTPAuthUser                       string // Username for HTTP Basic authentication (blank disables authentication)
 	HTTPAuthPassword                   string // Password for HTTP Basic authentication
+	UseSSL                             bool   // If true, service will serve HTTPS only
+	SSLPrivateKeyFile                  string // Name of SSL private key file, applies only when UseSSL = true
+	SSLCertFile                        string // Name of SSL certification file, applies only when UseSSL = true
 }
 
 var Config *Configuration = NewConfiguration()
@@ -71,6 +74,9 @@ func NewConfiguration() *Configuration {
 		HTTPPort:                           3002,
 		HTTPAuthUser:                       "",
 		HTTPAuthPassword:                   "",
+		UseSSL:                             false,
+		SSLPrivateKeyFile:                  "",
+		SSLCertFile:                        "",
 	}
 }
 

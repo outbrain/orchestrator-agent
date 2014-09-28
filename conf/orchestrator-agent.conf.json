@@ -18,5 +18,8 @@
     "PostCopyCommand":              "echo 'post copy'",
     "HTTPPort": 3002,
     "HTTPAuthUser": "",
-    "HTTPAuthPassword": ""
+    "HTTPAuthPassword": "",
+    "UseSSL": true,
+    "SSLCertFile": "/home/snoach/tmp/orchestrator-self-cert.pem",
+    "SSLPrivateKeyFile": "/home/snoach/tmp/orchestrator-private-key.pem"
 }
