@@ -25,8 +25,10 @@ backup/restore/orchestration capabilities in mind.
 ##### Specialized functionality offered by **orchestrator-agent**:
 
 - Detection of LVM snapshots on MySQL host (snapshots that are MySQL specific)
+- Creation of new snapshots
 - Mounting/umounting of LVM snapshots
-
+- Detection of DC-local and DC-agnostic snapshots available for a given cluster
+- Transmitting/receiving seed data
 
 ##### Requirements:
 
