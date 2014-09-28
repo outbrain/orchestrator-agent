@@ -88,7 +88,7 @@ invoked by the centralized **orchestrator** service.
 
 - Linux, 64bit. Tested on CentOS 5 and Ubuntu Server 12.04+
 - MySQL 5.1+
-- LVM, if snapshot functionality is required
+- LVM, free space in volume group, if snapshot functionality is required
 
 
 #### Extending orchestrator-agent
