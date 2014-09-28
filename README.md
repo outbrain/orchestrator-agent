@@ -22,11 +22,11 @@ backup/restore/orchestration capabilities in mind.
 - Calculation of disk usage on data directory mount point
 - Tailing the error log file
  
-### Specialized functionality offered by **orchestrator-agent**:
+#### Specialized functionality offered by **orchestrator-agent**:
 
 - Detection of LVM snapshots on MySQL host (snapshots that are MySQL specific)
 - Mounting/umounting of LVM snapshots
-- 
+
 
 ### Requirements:
 
