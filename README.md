@@ -87,7 +87,15 @@ invoked by the centralized **orchestrator** service.
 #### Requirements:
 
 - Linux, 64bit. Tested on CentOS 5 and Ubuntu Server 12.04+
+- MySQL 5.1+
+- LVM, if snapshot functionality is required
 
+
+#### Extending orchestrator-agent
+
+Yes please. **orchestrator-agent** is open to pull-requests. Desired functionality is for example
+the initiation and immediate transfer of backup data via `xtrabackup`. 
+The same can be done via `mysqldump` or `mydumper` etc. 
 
 Authored by [Shlomi Noach](https://github.com/shlomi-noach) at [Outbrain](https://github.com/outbrain)
 
