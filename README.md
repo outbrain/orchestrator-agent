@@ -15,12 +15,15 @@ As such, **orchestrator-agent**'s functionality is tightly coupled with the back
 as described following. Though easily extendible, **orchestrator-agent** was not developed with a general purpose
 backup/restore/orchestration capabilities in mind.
 
+Whether or not **orchestrator-agent** is useful to you depends on your needs.
+
 ##### Generic functionality offered by **orchestrator-agent**:
 
 - Detection of the MySQL service, starting and stopping (start/stop/status commands provided via configuration)
 - Detection of MySQL port, data directory (assumes configuration is `/etc/my.cnf`)
 - Calculation of disk usage on data directory mount point
 - Tailing the error log file
+- Discovery (the mere existence of the *orchestrator-agent* service on a host may suggest the existence or need of existence of a MySQL service)
  
 ##### Specialized functionality offered by **orchestrator-agent**:
 
@@ -29,10 +32,6 @@ backup/restore/orchestration capabilities in mind.
 - Mounting/umounting of LVM snapshots
 - Detection of DC-local and DC-agnostic snapshots available for a given cluster
 - Transmitting/receiving seed data
-
-##### Requirements:
-
-- Linux, 64bit. Tested on CentOS 5 and Ubuntu Server 12.04+
 
 #### The Outbrain seed method
 
@@ -62,6 +61,11 @@ availability of the snapshot along with any metadata required on cluster/DC.
 - Unmount snapshot
 - etc.
   
+
+#### Requirements:
+
+- Linux, 64bit. Tested on CentOS 5 and Ubuntu Server 12.04+
+
 
 Authored by [Shlomi Noach](https://github.com/shlomi-noach) at [Outbrain](https://github.com/outbrain)
 
