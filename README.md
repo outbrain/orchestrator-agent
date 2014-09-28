@@ -57,7 +57,7 @@ availability of the snapshot along with any metadata required on cluster/DC.
 - Find said snapshot on server, mount it
 - Stop MySQL on target host, clear data on MySQL data directory
 - Initiate send/receive process
-- Cleanup data after copy (e.g. remove `pid` files if any)
+- Cleanup data after copy (e.g. remove `.pid` files if any)
 - Unmount snapshot
 - etc.
   
