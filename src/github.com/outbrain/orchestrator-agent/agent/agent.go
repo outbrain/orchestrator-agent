@@ -17,6 +17,7 @@
 package agent
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
@@ -25,6 +26,15 @@ import (
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/osagent"
 )
+
+// httpGet is a convenience method for getting http response from URL, optionaly skipping SSL cert verification
+func httpGet(url string) (resp *http.Response, err error) {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Config.SSLSkipVerify},
+	}
+	client := &http.Client{Transport: tr}
+	return client.Get(url)
+}
 
 func SubmitAgent() error {
 	hostname, err := osagent.Hostname()
@@ -35,7 +45,7 @@ func SubmitAgent() error {
 	url := fmt.Sprintf("%s/api/submit-agent/%s/%d/%s", config.Config.AgentsServer, hostname, config.Config.HTTPPort, ProcessToken.Hash)
 	log.Debugf("Submitting this agent: %s", url)
 
-	response, err := http.Get(url)
+	response, err := httpGet(url)
 	if err != nil {
 		return log.Errore(err)
 	}

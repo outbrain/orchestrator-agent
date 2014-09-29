@@ -22,6 +22,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/auth"
+	"github.com/martini-contrib/gzip"
 	"github.com/martini-contrib/render"
 
 	nethttp "net/http"
@@ -39,6 +40,7 @@ func Http() {
 		m.Use(auth.Basic(config.Config.HTTPAuthUser, config.Config.HTTPAuthPassword))
 	}
 
+	m.Use(gzip.All())
 	// Render html templates from templates directory
 	m.Use(render.Renderer(render.Options{
 		Directory:       "resources",

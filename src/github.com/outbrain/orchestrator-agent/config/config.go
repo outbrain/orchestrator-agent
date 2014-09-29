@@ -46,6 +46,7 @@ type Configuration struct {
 	HTTPAuthUser                       string // Username for HTTP Basic authentication (blank disables authentication)
 	HTTPAuthPassword                   string // Password for HTTP Basic authentication
 	UseSSL                             bool   // If true, service will serve HTTPS only
+	SSLSkipVerify                      bool   // When using SSL, should we ignore SSL certification error
 	SSLPrivateKeyFile                  string // Name of SSL private key file, applies only when UseSSL = true
 	SSLCertFile                        string // Name of SSL certification file, applies only when UseSSL = true
 }
@@ -75,6 +76,7 @@ func NewConfiguration() *Configuration {
 		HTTPAuthUser:                       "",
 		HTTPAuthPassword:                   "",
 		UseSSL:                             false,
+		SSLSkipVerify:                      false,
 		SSLPrivateKeyFile:                  "",
 		SSLCertFile:                        "",
 	}
