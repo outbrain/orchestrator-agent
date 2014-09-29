@@ -33,7 +33,7 @@ Whether or not **orchestrator-agent** is useful to you depends on your needs.
 - Detection of DC-local and DC-agnostic snapshots available for a given cluster
 - Transmitting/receiving seed data
 
-#### The Outbrain seed method
+### The Outbrain seed method
 
 The following does not discuss hard-backups where binary/logical data is written to an external/remote disk or a tape.
 
@@ -62,7 +62,7 @@ availability of the snapshot along with any metadata required on cluster/DC.
 - etc.
   
   
-#### The orchestrator & orchestrator-agent architecture
+### The orchestrator & orchestrator-agent architecture
 
 **orchestrator** is a standalone, centralized service/command line tool. When acting as a service, it provides with web API
 and web interface to allow replication topology refactoring, long query control, and more.
@@ -84,14 +84,76 @@ with the MySQL service directly (i.e. no credentials required and no SQL queries
 invoked by the centralized **orchestrator** service.
   
 
-#### Requirements:
+### Configuration
+
+The following is a complete list of configuration parameters:
+
+* `SnapshotMountPoint`                 (string), a known mountpoint onto which a `mount` command will mount snapshot volumes
+* `ContinuousPollSeconds`              (uint), internal clocking interval (default 60 seconds)
+* `ResubmitAgentIntervalMinutes`       (uint), interval at which the agent re-submits itself to *orchestrator* daemon
+* `CreateSnapshotCommand`              (string), command which creates new LVM snapshot of MySQL data
+* `AvailableLocalSnapshotHostsCommand` (string), command which returns list of hosts in local DC on which recent snapshots are available
+* `AvailableSnapshotHostsCommand`      (string), command which returns list of hosts in all DCs on which recent snapshots are available
+* `SnapshotVolumesFilter`              (string), free text which identifies MySQL data snapshots (as opposed to other, unrelated snapshots)
+* `MySQLDatadirCommand`                (string), command which returns the data directory (e.g. `grep datadir /etc/my.cnf | head -n 1 | awk -F= '{print $2}'`)
+* `MySQLPortCommand`                   (string), command which returns the MySQL port
+* `MySQLDeleteDatadirContentCommand`   (string), command which purges the MySQL data directory
+* `MySQLServiceStopCommand`            (string), command which stops the MySQL service (e.g. `service mysql stop`)
+* `MySQLServiceStartCommand`           (string), command which starts the MySQL service
+* `MySQLServiceStatusCommand`          (string), command that checks status of service (expecting exit code 1 when service is down)
+* `ReceiveSeedDataCommand`             (string), command which listen on data, must accept arguments: target directory, listen port
+* `SendSeedDataCommand`                (string), command which sends data, must accept arguments: source directory, target host, target port 
+* `PostCopyCommand`                    (string), command to be executed after the seed is complete (cleanup)
+* `AgentsServer`                       (string), URL of **orchestrator** daemon, with port 3001 (e.g. `https://my.orchestrator.daemon:3001`)
+* `HTTPPort`                           (uint),   Port to listen on  
+* `HTTPAuthUser`                       (string), Basic auth user (default empty, meaning no auth)
+* `HTTPAuthPassword`                   (string), Basic auth password
+* `UseSSL`                             (bool),   If `true` then serving via `https` protocol
+* `SSLSkipVerify`                      (bool),   When connecting to **orchestrator** via SSL, whether to ignore certification error  
+* `SSLPrivateKeyFile`                  (string), When serving via `https`, location of SSL private key file
+* `SSLCertFile`                        (string), When serving via `https`, location of SSL certification file
+
+An example configuration file may be:
+
+```json
+{
+    "SnapshotMountPoint": "/var/tmp/mysql-mount",
+    "AgentsServer": "https://my.orchestrator.daemon:3001",
+    "ContinuousPollSeconds" : 60,
+    "ResubmitAgentIntervalMinutes": 60,
+    "CreateSnapshotCommand":                "/path/to/snapshot-command.bash",
+    "AvailableLocalSnapshotHostsCommand":   "/path/to/snapshot-local-availability-command.bash",
+    "AvailableSnapshotHostsCommand":        "/path/to/snapshot-availability-command.bash",
+    "SnapshotVolumesFilter":                "mysql-snap",
+    "MySQLDatadirCommand":                  "set $(grep datadir /etc/my.cnf | head -n 1 | awk -F= '{print $2}') ; echo $1",
+    "MySQLPortCommand":                     "set $(grep ^port /etc/my.cnf | head -n 1 | awk -F= '{print $2}') ; echo $1",
+    "MySQLDeleteDatadirContentCommand":     "set $(grep datadir /etc/my.cnf | head -n 1 | awk -F= '{print $2}') ; rm --preserve-root -rf $1/*",
+    "MySQLServiceStopCommand":      "/etc/init.d/mysql stop",
+    "MySQLServiceStartCommand":     "/etc/init.d/mysql start",
+    "MySQLServiceStatusCommand":    "/etc/init.d/mysql status",
+    "ReceiveSeedDataCommand":       "/path/to/data-receive.bash",
+    "SendSeedDataCommand":          "/path/to/data-send.bash",
+    "PostCopyCommand":              "set $(grep datadir /etc/my.cnf | head -n 1 | awk -F= '{print $2}') ; rm -f $1/*.pid",
+    "HTTPPort": 3002,
+    "HTTPAuthUser": "",
+    "HTTPAuthPassword": "",
+    "UseSSL": false,
+    "SSLSkipVerify": false,
+    "SSLCertFile": "",
+    "SSLPrivateKeyFile": ""
+}
+```
+
+
+### Requirements:
 
 - Linux, 64bit. Tested on CentOS 5 and Ubuntu Server 12.04+
 - MySQL 5.1+
 - LVM, free space in volume group, if snapshot functionality is required
+- **orchestrator-agent** assumes a single MySQL running on the machine
 
 
-#### Extending orchestrator-agent
+### Extending orchestrator-agent
 
 Yes please. **orchestrator-agent** is open to pull-requests. Desired functionality is for example
 the initiation and immediate transfer of backup data via `xtrabackup`. 
