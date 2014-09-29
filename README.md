@@ -86,6 +86,9 @@ invoked by the centralized **orchestrator** service.
 
 ### Configuration
 
+_Orchestrator-agent_ uses a configuration file, located in either `/etc/orchestrator-agent.conf.json` or 
+relative path to binary `conf/orchestrator-agent.conf.json` or `orchestrator-agent.conf.json`. 
+
 The following is a complete list of configuration parameters:
 
 * `SnapshotMountPoint`                 (string), a known mountpoint onto which a `mount` command will mount snapshot volumes
