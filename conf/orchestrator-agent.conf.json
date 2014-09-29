@@ -20,6 +20,6 @@
     "HTTPAuthUser": "",
     "HTTPAuthPassword": "",
     "UseSSL": true,
-    "SSLCertFile": "/home/snoach/tmp/orchestrator-self-cert.pem",
-    "SSLPrivateKeyFile": "/home/snoach/tmp/orchestrator-private-key.pem"
+    "SSLCertFile": "",
+    "SSLPrivateKeyFile": ""
 }
