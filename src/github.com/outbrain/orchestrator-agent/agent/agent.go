@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/outbrain/log"
+	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/osagent"
 )

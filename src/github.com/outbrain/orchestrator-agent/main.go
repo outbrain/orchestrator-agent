@@ -22,7 +22,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/outbrain/log"
+	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/app"
 	"github.com/outbrain/orchestrator-agent/config"

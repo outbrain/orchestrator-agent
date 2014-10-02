@@ -27,7 +27,7 @@ import (
 
 	nethttp "net/http"
 
-	"github.com/outbrain/log"
+	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/http"

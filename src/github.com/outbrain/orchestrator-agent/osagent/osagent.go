@@ -19,7 +19,7 @@ package osagent
 import (
 	"errors"
 	"fmt"
-	"github.com/outbrain/log"
+	"github.com/outbrain/golib/log"
 	"io/ioutil"
 	"os"
 	"os/exec"
