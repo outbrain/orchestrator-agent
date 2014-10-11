@@ -28,7 +28,7 @@ import (
 	"github.com/outbrain/orchestrator-agent/osagent"
 )
 
-var httpTimeout = time.Duration(2 * time.Second)
+var httpTimeout = time.Duration(time.Duration(config.Config.HttpTimeoutSeconds) * time.Second)
 
 func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, httpTimeout)

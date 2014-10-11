@@ -49,6 +49,7 @@ type Configuration struct {
 	SSLSkipVerify                      bool   // When using SSL, should we ignore SSL certification error
 	SSLPrivateKeyFile                  string // Name of SSL private key file, applies only when UseSSL = true
 	SSLCertFile                        string // Name of SSL certification file, applies only when UseSSL = true
+	HttpTimeoutSeconds                 int    // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
 }
 
 var Config *Configuration = NewConfiguration()
@@ -79,6 +80,7 @@ func NewConfiguration() *Configuration {
 		SSLSkipVerify:                      false,
 		SSLPrivateKeyFile:                  "",
 		SSLCertFile:                        "",
+		HttpTimeoutSeconds:                 10,
 	}
 }
 

@@ -21,5 +21,6 @@
     "HTTPAuthPassword": "",
     "UseSSL": true,
     "SSLCertFile": "",
-    "SSLPrivateKeyFile": ""
+    "SSLPrivateKeyFile": "",
+    "HttpTimeoutSeconds": 10
 }
