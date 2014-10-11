@@ -35,6 +35,7 @@ import (
 
 // Http starts serving HTTP (api/web) requests
 func Http() {
+	martini.Env = martini.Prod
 	m := martini.Classic()
 	if config.Config.HTTPAuthUser != "" {
 		m.Use(auth.Basic(config.Config.HTTPAuthUser, config.Config.HTTPAuthPassword))
