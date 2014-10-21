@@ -30,19 +30,21 @@ import (
 
 var httpTimeout = time.Duration(time.Duration(config.Config.HttpTimeoutSeconds) * time.Second)
 
+var httpClient = &http.Client{}
+
 func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, httpTimeout)
 }
 
 // httpGet is a convenience method for getting http response from URL, optionaly skipping SSL cert verification
 func httpGet(url string) (resp *http.Response, err error) {
-	tr := &http.Transport{
+	httpTransport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Config.SSLSkipVerify},
 		Dial:            dialTimeout,
 		ResponseHeaderTimeout: httpTimeout,
 	}
-	client := &http.Client{Transport: tr}
-	return client.Get(url)
+	httpClient.Transport = httpTransport
+	return httpClient.Get(url)
 }
 
 func SubmitAgent() error {
