@@ -57,6 +57,7 @@ func SubmitAgent() error {
 	log.Debugf("Submitting this agent: %s", url)
 
 	response, err := httpGet(url)
+	defer response.Body.Close()
 	if err != nil {
 		return log.Errore(err)
 	}
