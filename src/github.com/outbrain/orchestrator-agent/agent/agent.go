@@ -60,6 +60,7 @@ func SubmitAgent() error {
 	if err != nil {
 		return log.Errore(err)
 	}
+	defer response.Body.Close()
 
 	log.Debugf("response: %+v", response)
 	return err
