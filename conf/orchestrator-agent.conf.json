@@ -1,6 +1,7 @@
 {
     "SnapshotMountPoint": "/tmp",
-    "AgentsServer": "http://localhost:3001",
+    "AgentsServer": "http://localhost",
+    "AgentsServerPort": ":3001",
     "ContinuousPollSeconds" : 60,
     "ResubmitAgentIntervalMinutes": 60,
     "CreateSnapshotCommand": "echo 'no action'",
