@@ -53,7 +53,7 @@ func SubmitAgent() error {
 		return log.Errore(err)
 	}
 
-	url := fmt.Sprintf("%s/api/submit-agent/%s/%d/%s", config.Config.AgentsServer, hostname, config.Config.HTTPPort, ProcessToken.Hash)
+	url := fmt.Sprintf("%s/api/submit-agent/%s/%d/%s", config.Config.AgentsServer+config.Config.AgentsServerPort, hostname, config.Config.HTTPPort, ProcessToken.Hash)
 	log.Debugf("Submitting this agent: %s", url)
 
 	response, err := httpGet(url)

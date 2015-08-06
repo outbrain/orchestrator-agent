@@ -107,7 +107,8 @@ The following is a complete list of configuration parameters:
 * `ReceiveSeedDataCommand`             (string), command which listen on data, must accept arguments: target directory, listen port
 * `SendSeedDataCommand`                (string), command which sends data, must accept arguments: source directory, target host, target port 
 * `PostCopyCommand`                    (string), command to be executed after the seed is complete (cleanup)
-* `AgentsServer`                       (string), URL of **orchestrator** daemon, with port 3001 (e.g. `https://my.orchestrator.daemon:3001`)
+* `AgentsServer`                       (string), URL of **orchestrator** daemon, (see below, e.g. `https://my.orchestrator.daemon`)
+* `AgentsServerPort`                   (string), port of **orchestrator** daemon, usu. ":3001"
 * `HTTPPort`                           (uint),   Port to listen on  
 * `HTTPAuthUser`                       (string), Basic auth user (default empty, meaning no auth)
 * `HTTPAuthPassword`                   (string), Basic auth password
@@ -122,7 +123,8 @@ An example configuration file may be:
 ```json
 {
     "SnapshotMountPoint": "/var/tmp/mysql-mount",
-    "AgentsServer": "https://my.orchestrator.daemon:3001",
+    "AgentsServer": "https://my.orchestrator.daemon",
+    "AgentsServerPort": ":3001",
     "ContinuousPollSeconds" : 60,
     "ResubmitAgentIntervalMinutes": 60,
     "CreateSnapshotCommand":                "/path/to/snapshot-command.bash",

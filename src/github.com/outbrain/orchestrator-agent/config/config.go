@@ -42,6 +42,7 @@ type Configuration struct {
 	SendSeedDataCommand                string // Sends date to remote host (e.g. tarball via netcat)
 	PostCopyCommand                    string // command that is executed after seed is done and before MySQL starts
 	AgentsServer                       string // HTTP address of the orchestrator agents server
+	AgentsServerPort                   string // HTTP port of the orchestrator agents server
 	HTTPPort                           uint   // HTTP port on which this service listens
 	HTTPAuthUser                       string // Username for HTTP Basic authentication (blank disables authentication)
 	HTTPAuthPassword                   string // Password for HTTP Basic authentication
@@ -73,6 +74,7 @@ func NewConfiguration() *Configuration {
 		SendSeedDataCommand:                "",
 		PostCopyCommand:                    "",
 		AgentsServer:                       "",
+		AgentsServerPort:                   "",
 		HTTPPort:                           3002,
 		HTTPAuthUser:                       "",
 		HTTPAuthPassword:                   "",
