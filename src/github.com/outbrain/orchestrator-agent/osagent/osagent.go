@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	"github.com/outbrain/golib/log"
-
 	"github.com/outbrain/orchestrator-agent/config"
 )
 
