@@ -20,6 +20,8 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+
+	"github.com/outbrain/golib/log"
 )
 
 func GetHash(input []byte) string {
@@ -31,7 +33,11 @@ func GetHash(input []byte) string {
 func GetRandomData() []byte {
 	size := 64
 	rb := make([]byte, size)
-	_, _ = rand.Read(rb)
+	_, err = rand.Read(rb)
+	if err != nil {
+		log.Errore(err)
+		return nil
+	}
 	return rb
 }
 
