@@ -19,7 +19,6 @@ package osagent
 import (
 	"errors"
 	"fmt"
-	"github.com/outbrain/golib/log"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -28,6 +27,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/config"
 )
 
@@ -82,6 +82,9 @@ func execCmd(commandText string) (*exec.Cmd, string, error) {
 	}
 	ioutil.WriteFile(tmpFile.Name(), commandBytes, 0644)
 	log.Debugf("execCmd: %s", commandText)
+	if config.Config.ExecWithSudo {
+		return exec.Command("sudo", "bash", tmpFile.Name()), tmpFile.Name(), nil
+	}
 	return exec.Command("bash", tmpFile.Name()), tmpFile.Name(), nil
 }
 

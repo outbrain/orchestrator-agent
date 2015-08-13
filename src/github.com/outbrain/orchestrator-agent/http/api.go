@@ -19,11 +19,11 @@ package http
 import (
 	"encoding/json"
 	"errors"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
 	"net/http"
 	"os"
 
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/render"
 	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/osagent"

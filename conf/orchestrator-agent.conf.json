@@ -23,5 +23,6 @@
     "UseSSL": true,
     "SSLCertFile": "",
     "SSLPrivateKeyFile": "",
-    "HttpTimeoutSeconds": 10
+    "HttpTimeoutSeconds": 10,
+    "ExecWithSudo": false
 }

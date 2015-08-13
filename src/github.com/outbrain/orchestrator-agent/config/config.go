@@ -51,6 +51,7 @@ type Configuration struct {
 	SSLPrivateKeyFile                  string // Name of SSL private key file, applies only when UseSSL = true
 	SSLCertFile                        string // Name of SSL certification file, applies only when UseSSL = true
 	HttpTimeoutSeconds                 int    // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
+	ExecWithSudo                       bool   // If true, run os commands with sudo. Usually set when running agent with a non-privileged user
 }
 
 var Config *Configuration = NewConfiguration()
@@ -83,6 +84,7 @@ func NewConfiguration() *Configuration {
 		SSLPrivateKeyFile:                  "",
 		SSLCertFile:                        "",
 		HttpTimeoutSeconds:                 10,
+		ExecWithSudo:                       false,
 	}
 }
 
