@@ -20,7 +20,7 @@ rsync -av ./conf $release_files_dir/usr/local/orchestrator-agent/
 cp etc/init.d/orchestrator-agent.bash $release_files_dir/etc/init.d/orchestrator-agent
 chmod +x $release_files_dir/etc/init.d/orchestrator-agent
 
-GOPATH=/usr/share/golang:$(pwd)
+GOPATH=$GOPATH:$(pwd)
 go build -o $release_files_dir/usr/local/orchestrator-agent/orchestrator-agent ./src/github.com/outbrain/orchestrator-agent/main.go
 
 if [[ $? -ne 0 ]] ; then
