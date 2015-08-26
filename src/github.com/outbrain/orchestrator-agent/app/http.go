@@ -49,6 +49,9 @@ func Http() {
 		HTMLContentType: "text/html",
 	}))
 	m.Use(martini.Static("resources/public"))
+	if config.Config.UseMutualTLS {
+		m.Use(http.VerifyOUs(config.Config.SSLValidOUs))
+	}
 
 	go agent.ContinuousOperation()
 
@@ -56,14 +59,26 @@ func Http() {
 
 	http.API.RegisterRequests(m)
 
+	listenAddress := fmt.Sprintf(":%d", config.Config.HTTPPort)
+
 	// Serve
 	if config.Config.UseSSL {
-		log.Info("Serving via SSL")
-		err := nethttp.ListenAndServeTLS(fmt.Sprintf(":%d", config.Config.HTTPPort), config.Config.SSLCertFile, config.Config.SSLPrivateKeyFile, m)
+		log.Info("Starting HTTPS listener")
+		tlsConfig, err := http.NewTLSConfig(config.Config.SSLCAFile, config.Config.UseMutualTLS)
 		if err != nil {
 			log.Fatale(err)
 		}
+		if err = http.AppendKeyPair(tlsConfig, config.Config.SSLCertFile, config.Config.SSLPrivateKeyFile); err != nil {
+			log.Fatale(err)
+		}
+		if err = http.ListenAndServeTLS(listenAddress, m, tlsConfig); err != nil {
+			log.Fatale(err)
+		}
 	} else {
-		nethttp.ListenAndServe(fmt.Sprintf(":%d", config.Config.HTTPPort), m)
+		log.Info("Starting HTTP listener")
+		if err := nethttp.ListenAndServe(listenAddress, m); err != nil {
+			log.Fatale(err)
+		}
 	}
+	log.Info("Web server started")
 }

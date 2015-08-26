@@ -33,7 +33,7 @@ func GetHash(input []byte) string {
 func GetRandomData() []byte {
 	size := 64
 	rb := make([]byte, size)
-	_, err = rand.Read(rb)
+	_, err := rand.Read(rb)
 	if err != nil {
 		log.Errore(err)
 		return nil
