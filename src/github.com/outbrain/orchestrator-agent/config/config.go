@@ -53,6 +53,8 @@ type Configuration struct {
 	SSLCertFile                        string   // Name of SSL certification file, applies only when UseSSL = true
 	SSLCAFile                          string   // Name of SSL certificate authority file, applies only when UseSSL = true
 	SSLValidOUs                        []string // List of valid OUs that should be allowed for mutual TLS verification
+	StatusEndpoint                     string   // The endpoint for the agent status check.  Defaults to /api/status
+	StatusOUVerify                     bool     // If true, try to verify OUs when Mutual TLS is on.  Defaults to false
 	HttpTimeoutSeconds                 int      // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
 	ExecWithSudo                       bool     // If true, run os commands with sudo. Usually set when running agent with a non-privileged user
 }
@@ -89,6 +91,8 @@ func NewConfiguration() *Configuration {
 		SSLCertFile:                        "",
 		SSLCAFile:                          "",
 		SSLValidOUs:                        []string{},
+		StatusEndpoint:                     "/api/status",
+		StatusOUVerify:                     false,
 		HttpTimeoutSeconds:                 10,
 		ExecWithSudo:                       false,
 	}

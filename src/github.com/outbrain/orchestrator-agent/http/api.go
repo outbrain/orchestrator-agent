@@ -436,6 +436,13 @@ func (this *HttpAPI) SeedCommandSucceeded(params martini.Params, r render.Render
 	r.JSON(200, output)
 }
 
+// A simple status endpoint to ping to see if the agent is up and responding.  There's not much
+// to do here except respond with 200 and OK
+// This is pointed to by a configurable endpoint and has a configurable status message
+func (this *HttpAPI) Status(params martini.Params, r render.Render, req *http.Request) {
+	r.JSON(200, "OK")
+}
+
 // RegisterRequests makes for the de-facto list of known API calls
 func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/hostname", this.Hostname)
@@ -466,4 +473,5 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/abort-seed/:seedId", this.AbortSeed)
 	m.Get("/api/seed-command-completed/:seedId", this.SeedCommandCompleted)
 	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
+	m.Get(config.Config.StatusEndpoint, this.Status)
 }
