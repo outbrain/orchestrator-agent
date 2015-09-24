@@ -31,6 +31,7 @@ import (
 	"github.com/outbrain/orchestrator-agent/agent"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/http"
+	"github.com/outbrain/orchestrator/go/ssl"
 )
 
 // Http starts serving HTTP (api/web) requests
@@ -50,7 +51,7 @@ func Http() {
 	}))
 	m.Use(martini.Static("resources/public"))
 	if config.Config.UseMutualTLS {
-		m.Use(http.VerifyOUs(config.Config.SSLValidOUs))
+		m.Use(ssl.VerifyOUs(config.Config.SSLValidOUs))
 	}
 
 	go agent.ContinuousOperation()
@@ -64,14 +65,14 @@ func Http() {
 	// Serve
 	if config.Config.UseSSL {
 		log.Info("Starting HTTPS listener")
-		tlsConfig, err := http.NewTLSConfig(config.Config.SSLCAFile, config.Config.UseMutualTLS)
+		tlsConfig, err := ssl.NewTLSConfig(config.Config.SSLCAFile, config.Config.UseMutualTLS)
 		if err != nil {
 			log.Fatale(err)
 		}
-		if err = http.AppendKeyPair(tlsConfig, config.Config.SSLCertFile, config.Config.SSLPrivateKeyFile); err != nil {
+		if err = ssl.AppendKeyPair(tlsConfig, config.Config.SSLCertFile, config.Config.SSLPrivateKeyFile); err != nil {
 			log.Fatale(err)
 		}
-		if err = http.ListenAndServeTLS(listenAddress, m, tlsConfig); err != nil {
+		if err = ssl.ListenAndServeTLS(listenAddress, m, tlsConfig); err != nil {
 			log.Fatale(err)
 		}
 	} else {

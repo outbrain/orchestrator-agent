@@ -26,6 +26,7 @@ import (
 	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/config"
 	"github.com/outbrain/orchestrator-agent/osagent"
+	"github.com/outbrain/orchestrator-agent/ssl"
 )
 
 var httpTimeout = time.Duration(time.Duration(config.Config.HttpTimeoutSeconds) * time.Second)
@@ -38,13 +39,24 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 
 // httpGet is a convenience method for getting http response from URL, optionaly skipping SSL cert verification
 func httpGet(url string) (resp *http.Response, err error) {
+	tlsConfig, _ := buildTLS()
 	httpTransport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Config.SSLSkipVerify},
+		TLSClientConfig: tlsConfig,
 		Dial:            dialTimeout,
 		ResponseHeaderTimeout: httpTimeout,
 	}
 	httpClient.Transport = httpTransport
 	return httpClient.Get(url)
+}
+
+func buildTLS() (*tls.Config, error) {
+	tlsConfig, err := ssl.NewTLSConfig(config.Config.SSLCAFile, config.Config.UseMutualTLS)
+	if err != nil {
+		return tlsConfig, log.Errore(err)
+	}
+	_ = ssl.AppendKeyPair(tlsConfig, config.Config.SSLCertFile, config.Config.SSLPrivateKeyFile)
+	tlsConfig.InsecureSkipVerify = config.Config.SSLSkipVerify
+	return tlsConfig, nil
 }
 
 func SubmitAgent() error {
