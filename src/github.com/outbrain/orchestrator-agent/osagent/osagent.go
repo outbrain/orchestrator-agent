@@ -82,10 +82,16 @@ func execCmd(commandText string) (*exec.Cmd, string, error) {
 	}
 	ioutil.WriteFile(tmpFile.Name(), commandBytes, 0644)
 	log.Debugf("execCmd: %s", commandText)
-	if config.Config.ExecWithSudo {
-		return exec.Command("sudo", "bash", tmpFile.Name()), tmpFile.Name(), nil
-	}
 	return exec.Command("bash", tmpFile.Name()), tmpFile.Name(), nil
+}
+
+// Add sudo to a command if we're configured to do so.  Otherwise just a signifier of a
+// privileged command
+func sudoCmd(commandText string) string {
+	if config.Config.ExecWithSudo {
+		return "sudo " + commandText
+	}
+	return commandText
 }
 
 // commandOutput executes a command and return output bytes
@@ -147,7 +153,7 @@ func Hostname() (string, error) {
 }
 
 func LogicalVolumes(volumeName string, filterPattern string) ([]LogicalVolume, error) {
-	output, err := commandOutput(fmt.Sprintf("lvs --noheading -o lv_name,vg_name,lv_path,snap_percent %s", volumeName))
+	output, err := commandOutput(sudoCmd(fmt.Sprintf("lvs --noheading -o lv_name,vg_name,lv_path,snap_percent %s", volumeName)))
 	tokens, err := outputTokens(`[ \t]+`, output, err)
 	if err != nil {
 		return nil, err
@@ -178,7 +184,7 @@ func GetLogicalVolumePath(volumeName string) (string, error) {
 
 func GetLogicalVolumeFSType(volumeName string) (string, error) {
 	command := fmt.Sprintf("blkid %s", volumeName)
-	output, err := commandOutput(command)
+	output, err := commandOutput(sudoCmd(command))
 	lines, err := outputLines(output, err)
 	re := regexp.MustCompile(`TYPE="(.*?)"`)
 	for _, line := range lines {
@@ -231,7 +237,7 @@ func MountLV(mountPoint string, volumeName string) (Mount, error) {
 	if fsType == "xfs" {
 		mountOptions = "-o nouuid"
 	}
-	_, err = commandOutput(fmt.Sprintf("mount %s %s %s", mountOptions, volumeName, mountPoint))
+	_, err = commandOutput(sudoCmd(fmt.Sprintf("mount %s %s %s", mountOptions, volumeName, mountPoint)))
 	if err != nil {
 		return mount, err
 	}
@@ -240,7 +246,7 @@ func MountLV(mountPoint string, volumeName string) (Mount, error) {
 }
 
 func RemoveLV(volumeName string) error {
-	_, err := commandOutput(fmt.Sprintf("lvremove --force %s", volumeName))
+	_, err := commandOutput(sudoCmd(fmt.Sprintf("lvremove --force %s", volumeName)))
 	return err
 }
 
@@ -254,7 +260,7 @@ func Unmount(mountPoint string) (Mount, error) {
 		Path:      mountPoint,
 		IsMounted: false,
 	}
-	_, err := commandOutput(fmt.Sprintf("umount %s", mountPoint))
+	_, err := commandOutput(sudoCmd(fmt.Sprintf("umount %s", mountPoint)))
 	if err != nil {
 		return mount, err
 	}
@@ -264,7 +270,7 @@ func Unmount(mountPoint string) (Mount, error) {
 func DiskUsage(path string) (int64, error) {
 	var result int64
 
-	output, err := commandOutput(fmt.Sprintf("du -sb %s", path))
+	output, err := commandOutput(sudoCmd(fmt.Sprintf("du -sb %s", path)))
 	tokens, err := outputTokens(`[ \t]+`, output, err)
 	if err != nil {
 		return result, err
@@ -373,7 +379,7 @@ func AvailableSnapshots(requireLocal bool) ([]string, error) {
 }
 
 func MySQLErrorLogTail() ([]string, error) {
-	output, err := commandOutput(`tail -n 20 $(egrep "log[-_]error" /etc/my.cnf | cut -d "=" -f 2)`)
+	output, err := commandOutput(sudoCmd(`tail -n 20 $(egrep "log[-_]error" /etc/my.cnf | cut -d "=" -f 2)`))
 	tail, err := outputLines(output, err)
 	return tail, err
 }

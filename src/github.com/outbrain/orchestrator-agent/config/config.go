@@ -56,7 +56,7 @@ type Configuration struct {
 	StatusEndpoint                     string   // The endpoint for the agent status check.  Defaults to /api/status
 	StatusOUVerify                     bool     // If true, try to verify OUs when Mutual TLS is on.  Defaults to false
 	HttpTimeoutSeconds                 int      // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
-	ExecWithSudo                       bool     // If true, run os commands with sudo. Usually set when running agent with a non-privileged user
+	ExecWithSudo                       bool     // If true, run os commands that need privileged access with sudo. Usually set when running agent with a non-privileged user
 }
 
 var Config *Configuration = NewConfiguration()
