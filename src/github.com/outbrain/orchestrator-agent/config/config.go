@@ -55,6 +55,7 @@ type Configuration struct {
 	SSLValidOUs                        []string // List of valid OUs that should be allowed for mutual TLS verification
 	StatusEndpoint                     string   // The endpoint for the agent status check.  Defaults to /api/status
 	StatusOUVerify                     bool     // If true, try to verify OUs when Mutual TLS is on.  Defaults to false
+	StatusBadSeconds                   uint     // Report non-200 on a status check if we've failed to communicate with the main server in this number of seconds
 	HttpTimeoutSeconds                 int      // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
 	ExecWithSudo                       bool     // If true, run os commands with sudo. Usually set when running agent with a non-privileged user
 }
@@ -93,6 +94,7 @@ func NewConfiguration() *Configuration {
 		SSLValidOUs:                        []string{},
 		StatusEndpoint:                     "/api/status",
 		StatusOUVerify:                     false,
+		StatusBadSeconds:                   300,
 		HttpTimeoutSeconds:                 10,
 		ExecWithSudo:                       false,
 	}
