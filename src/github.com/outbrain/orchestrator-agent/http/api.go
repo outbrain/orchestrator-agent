@@ -21,6 +21,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -440,7 +441,11 @@ func (this *HttpAPI) SeedCommandSucceeded(params martini.Params, r render.Render
 // to do here except respond with 200 and OK
 // This is pointed to by a configurable endpoint and has a configurable status message
 func (this *HttpAPI) Status(params martini.Params, r render.Render, req *http.Request) {
-	r.JSON(200, "OK")
+	if uint(time.Since(agent.LastTalkback).Seconds()) > config.Config.StatusBadSeconds {
+		r.JSON(500, "BAD")
+	} else {
+		r.JSON(200, "OK")
+	}
 }
 
 // RegisterRequests makes for the de-facto list of known API calls

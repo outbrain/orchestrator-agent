@@ -33,6 +33,8 @@ var httpTimeout = time.Duration(time.Duration(config.Config.HttpTimeoutSeconds) 
 
 var httpClient = &http.Client{}
 
+var LastTalkback time.Time
+
 func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, httpTimeout)
 }
@@ -78,6 +80,17 @@ func SubmitAgent() error {
 	return err
 }
 
+// Just check connectivity back to the server.  This just calls an endpoint that returns 200 OK
+func PingServer() error {
+	url := fmt.Sprintf("%s/api/agent-ping", config.Config.AgentsServer+config.Config.AgentsServerPort)
+	response, err := httpGet(url)
+	if err != nil {
+		return log.Errore(err)
+	}
+	defer response.Body.Close()
+	return nil
+}
+
 // ContinuousOperation starts an asynchronuous infinite operation process where:
 // - agent is submitted into orchestrator
 func ContinuousOperation() {
@@ -88,6 +101,11 @@ func ContinuousOperation() {
 	SubmitAgent()
 	for _ = range tick {
 		// Do stuff
+		if err := PingServer(); err != nil {
+			log.Warning("Failed to ping orchestrator server")
+		} else {
+			LastTalkback = time.Now()
+		}
 
 		// See if we should also forget instances/agents (lower frequency)
 		select {
