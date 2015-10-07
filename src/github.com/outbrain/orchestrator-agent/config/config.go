@@ -57,7 +57,7 @@ type Configuration struct {
 	StatusOUVerify                     bool     // If true, try to verify OUs when Mutual TLS is on.  Defaults to false
 	StatusBadSeconds                   uint     // Report non-200 on a status check if we've failed to communicate with the main server in this number of seconds
 	HttpTimeoutSeconds                 int      // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
-	ExecWithSudo                       bool     // If true, run os commands with sudo. Usually set when running agent with a non-privileged user
+	ExecWithSudo                       bool     // If true, run os commands that need privileged access with sudo. Usually set when running agent with a non-privileged user
 }
 
 var Config *Configuration = NewConfiguration()
