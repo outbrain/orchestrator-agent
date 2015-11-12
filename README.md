@@ -89,6 +89,8 @@ invoked by the centralized **orchestrator** service.
 _Orchestrator-agent_ uses a configuration file, located in either `/etc/orchestrator-agent.conf.json` or 
 relative path to binary `conf/orchestrator-agent.conf.json` or `orchestrator-agent.conf.json`. 
 
+Note that the agent will use the config file in its relative conf path first.
+
 The following is a complete list of configuration parameters:
 
 * `SnapshotMountPoint`                 (string), a known mountpoint onto which a `mount` command will mount snapshot volumes
@@ -107,8 +109,7 @@ The following is a complete list of configuration parameters:
 * `ReceiveSeedDataCommand`             (string), command which listen on data, must accept arguments: target directory, listen port
 * `SendSeedDataCommand`                (string), command which sends data, must accept arguments: source directory, target host, target port 
 * `PostCopyCommand`                    (string), command to be executed after the seed is complete (cleanup)
-* `AgentsServer`                       (string), URL of **orchestrator** daemon, (see below, e.g. `https://my.orchestrator.daemon`)
-* `AgentsServerPort`                   (string), port of **orchestrator** daemon, usu. ":3001"
+* `AgentsServer`                       (string), **Required** URL of your **orchestrator** daemon, You must add the port the orchestrator server expects to talk to agents to (see below, e.g. `https://my.orchestrator.daemon:3001`)
 * `HTTPPort`                           (uint),   Port to listen on  
 * `HTTPAuthUser`                       (string), Basic auth user (default empty, meaning no auth)
 * `HTTPAuthPassword`                   (string), Basic auth password
@@ -123,8 +124,7 @@ An example configuration file may be:
 ```json
 {
     "SnapshotMountPoint": "/var/tmp/mysql-mount",
-    "AgentsServer": "https://my.orchestrator.daemon",
-    "AgentsServerPort": ":3001",
+    "AgentsServer": "https://my.orchestrator.daemon:3001",
     "ContinuousPollSeconds" : 60,
     "ResubmitAgentIntervalMinutes": 60,
     "CreateSnapshotCommand":                "/path/to/snapshot-command.bash",
@@ -151,6 +151,12 @@ An example configuration file may be:
 }
 ```
 
+#### Necessary matching configuration on the Orchestrator Server side
+
+If you initially deployed orchestrator with a minimally working configuration, you will need to make some changes on the server side to prepare it for newly deployed agents. The configuration lines needed on the server side to support agents are
+
+*  `ServeAgentsHttp`      (bool), Must be set to `true` to get the orchestrator server listening for agents
+*  `AgentsServerPort`     (String), The port on which the server should listen to agents. Shoult match the port you define for agents in `AgentsServer`.
 
 ### Requirements:
 
