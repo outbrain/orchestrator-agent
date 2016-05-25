@@ -18,6 +18,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-martini/martini"
@@ -64,6 +65,14 @@ func Http() {
 
 	// Serve
 	if config.Config.UseSSL {
+		if len(config.Config.SSLCertFile) == 0 {
+			log.Fatale(errors.New("UseSSL is true but SSLCertFile is unspecified"))
+		}
+
+		if len(config.Config.SSLPrivateKeyFile) == 0 {
+			log.Fatale(errors.New("UseSSL is true but SSLPrivateKeyFile is unspecified"))
+		}
+
 		log.Info("Starting HTTPS listener")
 		tlsConfig, err := ssl.NewTLSConfig(config.Config.SSLCAFile, config.Config.UseMutualTLS)
 		if err != nil {
