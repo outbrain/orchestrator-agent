@@ -314,10 +314,15 @@ func GetMySQLDataDirAvailableDiskSpace() (int64, error) {
 		return 0, log.Errore(err)
 	}
 
-	tokens, err := outputTokens(`[ \t]+`, output, err)
-	for _, lineTokens := range tokens {
-		result, err := strconv.ParseInt(lineTokens[4], 10, 0)
-		return result, err
+	if len(output) > 0 {
+		tokens, err := outputTokens(`[ \t]+`, output, err)
+		if err != nil {
+			return 0, log.Errore(err)
+		}
+		for _, lineTokens := range tokens {
+			result, err := strconv.ParseInt(lineTokens[4], 10, 0)
+			return result, err
+		}
 	}
 	return 0, log.Errore(errors.New(fmt.Sprintf("No rows found by df in GetMySQLDataDirAvailableDiskSpace, %s", directory)))
 }
