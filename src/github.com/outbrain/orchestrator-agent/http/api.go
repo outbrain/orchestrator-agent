@@ -19,6 +19,7 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -448,6 +449,29 @@ func (this *HttpAPI) Status(params martini.Params, r render.Render, req *http.Re
 	}
 }
 
+func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *http.Request) {
+	var err error
+	if err = validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+
+	if _, ok := config.Config.CustomCommands[params["cmd"]]; ok {
+		commandOutput, err := osagent.ExecCustomCmdWithOutput(params["cmd"])
+		if err != nil {
+			r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+			return
+		}
+
+		r.JSON(200, &APIResponse{Code: OK, Message: string(commandOutput)})
+		return
+	} else {
+		err = fmt.Errorf("%s : Command not found", params["cmd"])
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+}
+
 // RegisterRequests makes for the de-facto list of known API calls
 func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/hostname", this.Hostname)
@@ -478,5 +502,6 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/abort-seed/:seedId", this.AbortSeed)
 	m.Get("/api/seed-command-completed/:seedId", this.SeedCommandCompleted)
 	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
+	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
 }
