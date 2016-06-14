@@ -24,5 +24,8 @@
     "SSLCertFile": "",
     "SSLPrivateKeyFile": "",
     "HttpTimeoutSeconds": 10,
-    "ExecWithSudo": false
+    "ExecWithSudo": false,
+    "CustomCommands": {
+        "true": "/bin/true"
+    }
 }

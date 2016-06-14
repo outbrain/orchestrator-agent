@@ -25,39 +25,40 @@ import (
 
 // Configuration makes for orchestrator-agent configuration input, which can be provided by user via JSON formatted file.
 type Configuration struct {
-	SnapshotMountPoint                 string   // The single, agreed-upon mountpoint for logical volume snapshots
-	ContinuousPollSeconds              uint     // Poll interval for continuous operation
-	ResubmitAgentIntervalMinutes       uint     // Poll interval for resubmitting this agent on orchestrator agents API
-	CreateSnapshotCommand              string   // Command which creates a snapshot logical volume. It's a "do it yourself" implementation
-	AvailableLocalSnapshotHostsCommand string   // Command which returns list of hosts (one host per line) with available snapshots in local datacenter
-	AvailableSnapshotHostsCommand      string   // Command which returns list of hosts (one host per line) with available snapshots in any datacenter
-	SnapshotVolumesFilter              string   // text pattern filtering agent logical volumes that are valid snapshots
-	MySQLDatadirCommand                string   // command expected to present with @@datadir
-	MySQLPortCommand                   string   // command expected to present with @@port
-	MySQLDeleteDatadirContentCommand   string   // command which deletes all content from MySQL datadir (does not remvoe directory itself)
-	MySQLServiceStopCommand            string   // Command to stop mysql, e.g. /etc/init.d/mysql stop
-	MySQLServiceStartCommand           string   // Command to start mysql, e.g. /etc/init.d/mysql start
-	MySQLServiceStatusCommand          string   // Command to check mysql status. Expects 0 return value when running, non-zero when not running, e.g. /etc/init.d/mysql status
-	ReceiveSeedDataCommand             string   // Accepts incoming data (e.g. tarball over netcat)
-	SendSeedDataCommand                string   // Sends date to remote host (e.g. tarball via netcat)
-	PostCopyCommand                    string   // command that is executed after seed is done and before MySQL starts
-	AgentsServer                       string   // HTTP address of the orchestrator agents server
-	AgentsServerPort                   string   // HTTP port of the orchestrator agents server
-	HTTPPort                           uint     // HTTP port on which this service listens
-	HTTPAuthUser                       string   // Username for HTTP Basic authentication (blank disables authentication)
-	HTTPAuthPassword                   string   // Password for HTTP Basic authentication
-	UseSSL                             bool     // If true, service will serve HTTPS only
-	UseMutualTLS                       bool     // If true, service will serve HTTPS only
-	SSLSkipVerify                      bool     // When using SSL, should we ignore SSL certification error
-	SSLPrivateKeyFile                  string   // Name of SSL private key file, applies only when UseSSL = true
-	SSLCertFile                        string   // Name of SSL certification file, applies only when UseSSL = true
-	SSLCAFile                          string   // Name of SSL certificate authority file, applies only when UseSSL = true
-	SSLValidOUs                        []string // List of valid OUs that should be allowed for mutual TLS verification
-	StatusEndpoint                     string   // The endpoint for the agent status check.  Defaults to /api/status
-	StatusOUVerify                     bool     // If true, try to verify OUs when Mutual TLS is on.  Defaults to false
-	StatusBadSeconds                   uint     // Report non-200 on a status check if we've failed to communicate with the main server in this number of seconds
-	HttpTimeoutSeconds                 int      // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
-	ExecWithSudo                       bool     // If true, run os commands that need privileged access with sudo. Usually set when running agent with a non-privileged user
+	SnapshotMountPoint                 string            // The single, agreed-upon mountpoint for logical volume snapshots
+	ContinuousPollSeconds              uint              // Poll interval for continuous operation
+	ResubmitAgentIntervalMinutes       uint              // Poll interval for resubmitting this agent on orchestrator agents API
+	CreateSnapshotCommand              string            // Command which creates a snapshot logical volume. It's a "do it yourself" implementation
+	AvailableLocalSnapshotHostsCommand string            // Command which returns list of hosts (one host per line) with available snapshots in local datacenter
+	AvailableSnapshotHostsCommand      string            // Command which returns list of hosts (one host per line) with available snapshots in any datacenter
+	SnapshotVolumesFilter              string            // text pattern filtering agent logical volumes that are valid snapshots
+	MySQLDatadirCommand                string            // command expected to present with @@datadir
+	MySQLPortCommand                   string            // command expected to present with @@port
+	MySQLDeleteDatadirContentCommand   string            // command which deletes all content from MySQL datadir (does not remvoe directory itself)
+	MySQLServiceStopCommand            string            // Command to stop mysql, e.g. /etc/init.d/mysql stop
+	MySQLServiceStartCommand           string            // Command to start mysql, e.g. /etc/init.d/mysql start
+	MySQLServiceStatusCommand          string            // Command to check mysql status. Expects 0 return value when running, non-zero when not running, e.g. /etc/init.d/mysql status
+	ReceiveSeedDataCommand             string            // Accepts incoming data (e.g. tarball over netcat)
+	SendSeedDataCommand                string            // Sends date to remote host (e.g. tarball via netcat)
+	PostCopyCommand                    string            // command that is executed after seed is done and before MySQL starts
+	AgentsServer                       string            // HTTP address of the orchestrator agents server
+	AgentsServerPort                   string            // HTTP port of the orchestrator agents server
+	HTTPPort                           uint              // HTTP port on which this service listens
+	HTTPAuthUser                       string            // Username for HTTP Basic authentication (blank disables authentication)
+	HTTPAuthPassword                   string            // Password for HTTP Basic authentication
+	UseSSL                             bool              // If true, service will serve HTTPS only
+	UseMutualTLS                       bool              // If true, service will serve HTTPS only
+	SSLSkipVerify                      bool              // When using SSL, should we ignore SSL certification error
+	SSLPrivateKeyFile                  string            // Name of SSL private key file, applies only when UseSSL = true
+	SSLCertFile                        string            // Name of SSL certification file, applies only when UseSSL = true
+	SSLCAFile                          string            // Name of SSL certificate authority file, applies only when UseSSL = true
+	SSLValidOUs                        []string          // List of valid OUs that should be allowed for mutual TLS verification
+	StatusEndpoint                     string            // The endpoint for the agent status check.  Defaults to /api/status
+	StatusOUVerify                     bool              // If true, try to verify OUs when Mutual TLS is on.  Defaults to false
+	StatusBadSeconds                   uint              // Report non-200 on a status check if we've failed to communicate with the main server in this number of seconds
+	HttpTimeoutSeconds                 int               // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
+	ExecWithSudo                       bool              // If true, run os commands that need privileged access with sudo. Usually set when running agent with a non-privileged user
+	CustomCommands                     map[string]string // Anything in this list of options will be exposed as an API callable options
 }
 
 var Config *Configuration = NewConfiguration()
@@ -97,6 +98,7 @@ func NewConfiguration() *Configuration {
 		StatusBadSeconds:                   300,
 		HttpTimeoutSeconds:                 10,
 		ExecWithSudo:                       false,
+		CustomCommands:                     make(map[string]string),
 	}
 }
 

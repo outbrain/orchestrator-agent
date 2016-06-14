@@ -466,3 +466,7 @@ func AbortSeed(seedId string) error {
 	}
 	return nil
 }
+
+func ExecCustomCmdWithOutput(commandKey string) ([]byte, error) {
+	return commandOutput(config.Config.CustomCommands[commandKey])
+}
