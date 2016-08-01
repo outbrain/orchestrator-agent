@@ -22,7 +22,7 @@ chmod +x $release_files_dir/etc/init.d/orchestrator-agent
 
 GO15VENDOREXPERIMENT=1
 GOPATH=$GOPATH:$(pwd)
-go build -o $release_files_dir/usr/local/orchestrator-agent/orchestrator-agent ./src/github.com/outbrain/orchestrator-agent/main.go
+go build -o $release_files_dir/usr/local/orchestrator-agent/orchestrator-agent go/cmd/orchestrator-agent/main.go
 
 if [[ $? -ne 0 ]] ; then
 	exit 1
