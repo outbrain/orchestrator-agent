@@ -69,6 +69,11 @@ type Mount struct {
 	MySQLDiskUsage int64
 }
 
+func init() {
+	osPath = os.Getenv("PATH")
+	os.Setenv("PATH", fmt.Sprintf("%s:/usr/sbin:/usr/bin:/sbin:/bin", osPath))
+}
+
 func commandSplit(commandText string) (string, []string) {
 	tokens := regexp.MustCompile(`[ ]+`).Split(strings.TrimSpace(commandText), -1)
 	return tokens[0], tokens[1:]
