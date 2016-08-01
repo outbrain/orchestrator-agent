@@ -20,6 +20,7 @@ rsync -av ./conf $release_files_dir/usr/local/orchestrator-agent/
 cp etc/init.d/orchestrator-agent.bash $release_files_dir/etc/init.d/orchestrator-agent
 chmod +x $release_files_dir/etc/init.d/orchestrator-agent
 
+GO15VENDOREXPERIMENT=1
 GOPATH=$GOPATH:$(pwd)
 go build -o $release_files_dir/usr/local/orchestrator-agent/orchestrator-agent ./src/github.com/outbrain/orchestrator-agent/main.go
 
