@@ -105,12 +105,12 @@ func commandOutput(commandText string) ([]byte, error) {
 	if err != nil {
 		return nil, log.Errore(err)
 	}
+	defer os.Remove(tmpFileName)
 
 	outputBytes, err := cmd.Output()
 	if err != nil {
 		return nil, log.Errore(err)
 	}
-	os.Remove(tmpFileName)
 
 	return outputBytes, nil
 }
@@ -121,13 +121,13 @@ func commandRun(commandText string, onCommand func(*exec.Cmd)) error {
 	if err != nil {
 		return log.Errore(err)
 	}
+	defer os.Remove(tmpFileName)
 	onCommand(cmd)
 
 	err = cmd.Run()
 	if err != nil {
 		return log.Errore(err)
 	}
-	os.Remove(tmpFileName)
 
 	return nil
 }
