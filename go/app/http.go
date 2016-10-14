@@ -32,7 +32,7 @@ import (
 	"github.com/outbrain/orchestrator-agent/go/agent"
 	"github.com/outbrain/orchestrator-agent/go/config"
 	"github.com/outbrain/orchestrator-agent/go/http"
-	"github.com/outbrain/orchestrator/go/ssl"
+	"github.com/outbrain/orchestrator-agent/go/ssl"
 )
 
 // Http starts serving HTTP (api/web) requests
