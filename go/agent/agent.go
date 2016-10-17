@@ -99,7 +99,7 @@ func ContinuousOperation() {
 	resubmitTick := time.Tick(time.Duration(config.Config.ResubmitAgentIntervalMinutes) * time.Minute)
 
 	SubmitAgent()
-	for _ = range tick {
+	for range tick {
 		// Do stuff
 		if err := PingServer(); err != nil {
 			log.Warning("Failed to ping orchestrator server")
