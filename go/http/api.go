@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
+	"strconv"
 	"time"
 
 	"github.com/go-martini/martini"
@@ -457,6 +459,70 @@ func (this *HttpAPI) RelayLogFiles(params martini.Params, r render.Render, req *
 	r.JSON(200, output)
 }
 
+// BinlogContents returns contents of binary log entries
+func (this *HttpAPI) RelaylogContentsTail(params martini.Params, r render.Render, req *http.Request) {
+	if err := this.validateToken(r, req); err != nil {
+		return
+	}
+
+	var err error
+	var startPosition int64
+	if startPosition, err = strconv.ParseInt(params["start"], 10, 0); err != nil {
+		err = fmt.Errorf("Cannot parse startPosition: %s", err.Error())
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	firstRelaylog := params["relaylog"]
+	var parseRelaylogs []string
+	if existingRelaylogs, err := osagent.GetRelayLogFileNames(); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	} else {
+		for i, relaylog := range existingRelaylogs {
+			if (firstRelaylog == relaylog) || (firstRelaylog == path.Base(relaylog)) {
+				// found the relay log we want to start with
+				parseRelaylogs = existingRelaylogs[i:]
+			}
+		}
+	}
+
+	output, err := osagent.MySQLBinlogContents(parseRelaylogs, startPosition, 0)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, output)
+}
+
+// BinlogContents returns contents of binary log entries
+func (this *HttpAPI) BinlogContents(params martini.Params, r render.Render, req *http.Request) {
+	if err := this.validateToken(r, req); err != nil {
+		return
+	}
+
+	var err error
+	var startPosition, stopPosition int64
+	if start := req.URL.Query().Get("start"); start != "" {
+		if startPosition, err = strconv.ParseInt(start, 10, 0); err != nil {
+			r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+			return
+		}
+	}
+	if stop := req.URL.Query().Get("stop"); stop != "" {
+		if stopPosition, err = strconv.ParseInt(stop, 10, 0); err != nil {
+			r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+			return
+		}
+	}
+	binlogFileNames := req.URL.Query()["binlog"]
+	output, err := osagent.MySQLBinlogContents(binlogFileNames, startPosition, stopPosition)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, output)
+}
+
 func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *http.Request) {
 	if err := this.validateToken(r, req); err != nil {
 		return
@@ -510,6 +576,8 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
 	m.Get("/api/mysql-relay-log-index-file", this.RelayLogIndexFile)
 	m.Get("/api/mysql-relay-log-files", this.RelayLogFiles)
+	m.Get("/api/mysql-binlog-contents", this.BinlogContents)
+	m.Get("/api/mysql-relaylog-contents-tail/:relaylog/:start", this.RelaylogContentsTail)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
 }

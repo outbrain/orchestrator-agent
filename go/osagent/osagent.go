@@ -97,6 +97,26 @@ func GetRelayLogFileNames() (fileNames []string, err error) {
 	return fileNames, nil
 }
 
+func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition int64) (string, error) {
+	if len(binlogFiles) == 0 {
+		return "", log.Errorf("No binlog files provided in MySQLBinlogContents")
+	}
+	cmd := `mysqlbinlog`
+	for _, binlogFile := range binlogFiles {
+		cmd = fmt.Sprintf("%s %s", cmd, binlogFile)
+	}
+	if startPosition != 0 {
+		cmd = fmt.Sprintf("%s --start-position=%d", cmd, startPosition)
+	}
+	if stopPosition != 0 {
+		cmd = fmt.Sprintf("%s --stop-position=%d", cmd, stopPosition)
+	}
+	cmd = fmt.Sprintf("%s | gzip | base64", cmd)
+
+	output, err := commandOutput(cmd)
+	return string(output), err
+}
+
 // Equals tests equality of this corrdinate and another one.
 func (this *LogicalVolume) IsSnapshotValid() bool {
 	if !this.IsSnapshot {
