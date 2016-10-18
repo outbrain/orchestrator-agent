@@ -46,6 +46,57 @@ type LogicalVolume struct {
 	SnapshotPercent float64
 }
 
+func GetMySQLDataDir() (string, error) {
+	command := config.Config.MySQLDatadirCommand
+	output, err := commandOutput(command)
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
+func GetMySQLPort() (int64, error) {
+	command := config.Config.MySQLPortCommand
+	output, err := commandOutput(command)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
+}
+
+// GetRelayLogIndexFileName attempts to find the relay log index file under the mysql datadir
+func GetRelayLogIndexFileName() (string, error) {
+	directory, err := GetMySQLDataDir()
+	if err != nil {
+		return "", log.Errore(err)
+	}
+
+	output, err := commandOutput(fmt.Sprintf("ls %s/*relay*.index", directory))
+	if err != nil {
+		return "", log.Errore(err)
+	}
+
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
+// GetRelayLogFileNames attempts to find the active relay logs
+func GetRelayLogFileNames() (fileNames []string, err error) {
+	relayLogIndexFile, err := GetRelayLogIndexFileName()
+	if err != nil {
+		return fileNames, log.Errore(err)
+	}
+
+	contents, err := ioutil.ReadFile(relayLogIndexFile)
+	if err != nil {
+		return fileNames, log.Errore(err)
+	}
+
+	for _, fileName := range strings.Split(string(contents), "\n") {
+		if fileName != "" {
+			fileName = path.Join(path.Dir(relayLogIndexFile), fileName)
+			fileNames = append(fileNames, fileName)
+		}
+	}
+	return fileNames, nil
+}
+
 // Equals tests equality of this corrdinate and another one.
 func (this *LogicalVolume) IsSnapshotValid() bool {
 	if !this.IsSnapshot {
@@ -358,21 +409,6 @@ func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 		}
 		datadir = re.FindStringSubmatch(datadir)[1]
 	}
-}
-
-func GetMySQLDataDir() (string, error) {
-	command := config.Config.MySQLDatadirCommand
-	output, err := commandOutput(command)
-	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
-}
-
-func GetMySQLPort() (int64, error) {
-	command := config.Config.MySQLPortCommand
-	output, err := commandOutput(command)
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
 }
 
 func AvailableSnapshots(requireLocal bool) ([]string, error) {
