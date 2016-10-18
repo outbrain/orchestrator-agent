@@ -13,9 +13,9 @@
     "MySQLDeleteDatadirContentCommand": "echo 'will not do'",
     "MySQLServiceStopCommand":      "/etc/init.d/mysqld stop",
     "MySQLServiceStartCommand":     "/etc/init.d/mysqld start",
-    "MySQLServiceStatusCommand":    "/etc/init.d/mysqld status",  
-    "ReceiveSeedDataCommand":       "echo 'not implemented here'",  
-    "SendSeedDataCommand":          "echo 'not implemented here'",  
+    "MySQLServiceStatusCommand":    "/etc/init.d/mysqld status",
+    "ReceiveSeedDataCommand":       "echo 'not implemented here'",
+    "SendSeedDataCommand":          "echo 'not implemented here'",
     "PostCopyCommand":              "echo 'post copy'",
     "HTTPPort": 3002,
     "HTTPAuthUser": "",
@@ -27,5 +27,6 @@
     "ExecWithSudo": false,
     "CustomCommands": {
         "true": "/bin/true"
-    }
+    },
+    "TokenHintFile": "",
 }
