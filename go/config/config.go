@@ -60,6 +60,7 @@ type Configuration struct {
 	ExecWithSudo                       bool              // If true, run os commands that need privileged access with sudo. Usually set when running agent with a non-privileged user
 	CustomCommands                     map[string]string // Anything in this list of options will be exposed as an API callable options
 	TokenHintFile                      string            // If defined, token will be stored in this file
+	TokenHttpHeader                    string            // If defined, name of HTTP header where token is presented (as alternative to query param)
 }
 
 var Config *Configuration = NewConfiguration()
@@ -101,6 +102,7 @@ func NewConfiguration() *Configuration {
 		ExecWithSudo:                       false,
 		CustomCommands:                     make(map[string]string),
 		TokenHintFile:                      "",
+		TokenHttpHeader:                    "",
 	}
 }
 

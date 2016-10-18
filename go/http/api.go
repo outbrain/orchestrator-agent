@@ -64,12 +64,21 @@ type APIResponse struct {
 	Details interface{}
 }
 
-func validateToken(token string) error {
+// validateToken validates the request contains a valid token
+func (this *HttpAPI) validateToken(r render.Render, req *http.Request) error {
+	var token string
+	if config.Config.TokenHttpHeader != "" {
+		token = req.Header.Get(config.Config.TokenHttpHeader)
+	}
+	if token == "" {
+		token = req.URL.Query().Get("token")
+	}
 	if token == agent.ProcessToken.Hash {
 		return nil
-	} else {
-		return errors.New("Invalid token")
 	}
+	err := errors.New("Invalid token")
+	r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	return err
 }
 
 // Hostname provides information on this process
@@ -84,8 +93,7 @@ func (this *HttpAPI) Hostname(params martini.Params, r render.Render) {
 
 // ListLogicalVolumes lists logical volumes by pattern
 func (this *HttpAPI) ListLogicalVolumes(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.LogicalVolumes("", params["pattern"])
@@ -98,8 +106,7 @@ func (this *HttpAPI) ListLogicalVolumes(params martini.Params, r render.Render, 
 
 // ListSnapshotsLogicalVolumes lists logical volumes by pattern
 func (this *HttpAPI) ListSnapshotsLogicalVolumes(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.LogicalVolumes("", config.Config.SnapshotVolumesFilter)
@@ -112,8 +119,7 @@ func (this *HttpAPI) ListSnapshotsLogicalVolumes(params martini.Params, r render
 
 // LogicalVolume lists a logical volume by name/path/mount point
 func (this *HttpAPI) LogicalVolume(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	lv := params["lv"]
@@ -130,8 +136,7 @@ func (this *HttpAPI) LogicalVolume(params martini.Params, r render.Render, req *
 
 // GetMount shows the configured mount point's status
 func (this *HttpAPI) GetMount(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.GetMount(config.Config.SnapshotMountPoint)
@@ -144,8 +149,7 @@ func (this *HttpAPI) GetMount(params martini.Params, r render.Render, req *http.
 
 // MountLV mounts a logical volume on config mount point
 func (this *HttpAPI) MountLV(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	lv := params["lv"]
@@ -162,8 +166,7 @@ func (this *HttpAPI) MountLV(params martini.Params, r render.Render, req *http.R
 
 // RemoveLV removes a logical volume
 func (this *HttpAPI) RemoveLV(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	lv := params["lv"]
@@ -180,8 +183,7 @@ func (this *HttpAPI) RemoveLV(params martini.Params, r render.Render, req *http.
 
 // Unmount umounts the config mount point
 func (this *HttpAPI) Unmount(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.Unmount(config.Config.SnapshotMountPoint)
@@ -194,8 +196,7 @@ func (this *HttpAPI) Unmount(params martini.Params, r render.Render, req *http.R
 
 // DiskUsage returns the number of bytes of a give ndirectory (recursive)
 func (this *HttpAPI) DiskUsage(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	path := req.URL.Query().Get("path")
@@ -210,8 +211,7 @@ func (this *HttpAPI) DiskUsage(params martini.Params, r render.Render, req *http
 
 // MySQLDiskUsage returns the number of bytes on the MySQL datadir
 func (this *HttpAPI) MySQLDiskUsage(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	datadir, err := osagent.GetMySQLDataDir()
@@ -226,8 +226,7 @@ func (this *HttpAPI) MySQLDiskUsage(params martini.Params, r render.Render, req 
 
 // CreateSnapshot lists dc-local available snapshots for this host
 func (this *HttpAPI) CreateSnapshot(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	err := osagent.CreateSnapshot()
@@ -240,8 +239,7 @@ func (this *HttpAPI) CreateSnapshot(params martini.Params, r render.Render, req 
 
 // LocalSnapshots lists dc-local available snapshots for this host
 func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.AvailableSnapshots(true)
@@ -254,8 +252,7 @@ func (this *HttpAPI) AvailableLocalSnapshots(params martini.Params, r render.Ren
 
 // Snapshots lists available snapshots for this host
 func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.AvailableSnapshots(false)
@@ -268,8 +265,7 @@ func (this *HttpAPI) AvailableSnapshots(params martini.Params, r render.Render, 
 
 // returns rows in tail of mysql error log
 func (this *HttpAPI) MySQLErrorLogTail(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.MySQLErrorLogTail()
@@ -282,8 +278,7 @@ func (this *HttpAPI) MySQLErrorLogTail(params martini.Params, r render.Render, r
 
 // MySQLPort returns the (heuristic) port on which MySQL executes
 func (this *HttpAPI) MySQLPort(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.GetMySQLPort()
@@ -296,8 +291,7 @@ func (this *HttpAPI) MySQLPort(params martini.Params, r render.Render, req *http
 
 // MySQLRunning checks whether the MySQL service is up
 func (this *HttpAPI) MySQLRunning(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.MySQLRunning()
@@ -310,8 +304,7 @@ func (this *HttpAPI) MySQLRunning(params martini.Params, r render.Render, req *h
 
 // MySQLStop shuts down the MySQL service
 func (this *HttpAPI) MySQLStop(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	err := osagent.MySQLStop()
@@ -324,8 +317,7 @@ func (this *HttpAPI) MySQLStop(params martini.Params, r render.Render, req *http
 
 // MySQLStop starts the MySQL service
 func (this *HttpAPI) MySQLStart(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	err := osagent.MySQLStart()
@@ -338,8 +330,7 @@ func (this *HttpAPI) MySQLStart(params martini.Params, r render.Render, req *htt
 
 // DeleteMySQLDataDir compeltely erases MySQL data directory. Use with care!
 func (this *HttpAPI) DeleteMySQLDataDir(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	err := osagent.DeleteMySQLDataDir()
@@ -352,8 +343,7 @@ func (this *HttpAPI) DeleteMySQLDataDir(params martini.Params, r render.Render, 
 
 // GetMySQLDataDirAvailableDiskSpace returns the number of bytes free within the MySQL datadir mount
 func (this *HttpAPI) GetMySQLDataDirAvailableDiskSpace(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output, err := osagent.GetMySQLDataDirAvailableDiskSpace()
@@ -366,8 +356,7 @@ func (this *HttpAPI) GetMySQLDataDirAvailableDiskSpace(params martini.Params, r 
 
 // PostCopy
 func (this *HttpAPI) PostCopy(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	err := osagent.PostCopy()
@@ -381,8 +370,7 @@ func (this *HttpAPI) PostCopy(params martini.Params, r render.Render, req *http.
 // ReceiveMySQLSeedData
 func (this *HttpAPI) ReceiveMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
 	var err error
-	if err = validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err = this.validateToken(r, req); err != nil {
 		return
 	}
 	go osagent.ReceiveMySQLSeedData(params["seedId"])
@@ -391,9 +379,7 @@ func (this *HttpAPI) ReceiveMySQLSeedData(params martini.Params, r render.Render
 
 // SendMySQLSeedData
 func (this *HttpAPI) SendMySQLSeedData(params martini.Params, r render.Render, req *http.Request) {
-	var err error
-	if err = validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	mount, err := osagent.GetMount(config.Config.SnapshotMountPoint)
@@ -407,20 +393,16 @@ func (this *HttpAPI) SendMySQLSeedData(params martini.Params, r render.Render, r
 
 // AbortSeed
 func (this *HttpAPI) AbortSeed(params martini.Params, r render.Render, req *http.Request) {
-	var err error
-	if err = validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	osagent.AbortSeed(params["seedId"])
-	r.JSON(200, err == nil)
+	r.JSON(200, true)
 }
 
 // SeedCommandCompleted
 func (this *HttpAPI) SeedCommandCompleted(params martini.Params, r render.Render, req *http.Request) {
-	var err error
-	if err = validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output := osagent.SeedCommandCompleted(params["seedId"])
@@ -429,9 +411,7 @@ func (this *HttpAPI) SeedCommandCompleted(params martini.Params, r render.Render
 
 // SeedCommandCompleted
 func (this *HttpAPI) SeedCommandSucceeded(params martini.Params, r render.Render, req *http.Request) {
-	var err error
-	if err = validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 	output := osagent.SeedCommandSucceeded(params["seedId"])
@@ -451,8 +431,7 @@ func (this *HttpAPI) Status(params martini.Params, r render.Render, req *http.Re
 
 // RelayLogIndexFile returns mysql relay log index file, full path
 func (this *HttpAPI) RelayLogIndexFile(params martini.Params, r render.Render, req *http.Request) {
-	if err := validateToken(req.URL.Query().Get("token")); err != nil {
-		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 
@@ -464,10 +443,22 @@ func (this *HttpAPI) RelayLogIndexFile(params martini.Params, r render.Render, r
 	r.JSON(200, output)
 }
 
-func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *http.Request) {
-	var err error
-	if err = validateToken(req.URL.Query().Get("token")); err != nil {
+// RelayLogFiles returns the list of active relay logs
+func (this *HttpAPI) RelayLogFiles(params martini.Params, r render.Render, req *http.Request) {
+	if err := this.validateToken(r, req); err != nil {
+		return
+	}
+
+	output, err := osagent.GetRelayLogFileNames()
+	if err != nil {
 		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, output)
+}
+
+func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *http.Request) {
+	if err := this.validateToken(r, req); err != nil {
 		return
 	}
 
@@ -481,7 +472,7 @@ func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *htt
 		r.JSON(200, &APIResponse{Code: OK, Message: string(commandOutput)})
 		return
 	} else {
-		err = fmt.Errorf("%s : Command not found", params["cmd"])
+		err := fmt.Errorf("%s : Command not found", params["cmd"])
 		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
 		return
 	}
@@ -518,6 +509,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/seed-command-completed/:seedId", this.SeedCommandCompleted)
 	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
 	m.Get("/api/mysql-relay-log-index-file", this.RelayLogIndexFile)
+	m.Get("/api/mysql-relay-log-files", this.RelayLogFiles)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
 }
