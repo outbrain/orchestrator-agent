@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
@@ -69,6 +70,10 @@ func main() {
 	}
 
 	log.Debugf("Process token: %s", agent.ProcessToken.Hash)
+	if config.Config.TokenHintFile != "" {
+		err := ioutil.WriteFile(config.Config.TokenHintFile, []byte(agent.ProcessToken.Hash), 0644)
+		log.Errore(err)
+	}
 
 	go acceptSignal()
 
