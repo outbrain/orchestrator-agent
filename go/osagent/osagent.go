@@ -46,6 +46,35 @@ type LogicalVolume struct {
 	SnapshotPercent float64
 }
 
+func GetMySQLDataDir() (string, error) {
+	command := config.Config.MySQLDatadirCommand
+	output, err := commandOutput(command)
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
+func GetMySQLPort() (int64, error) {
+	command := config.Config.MySQLPortCommand
+	output, err := commandOutput(command)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
+}
+
+func GetRelayLogIndexFileName() (string, error) {
+	directory, err := GetMySQLDataDir()
+	if err != nil {
+		return "", log.Errore(err)
+	}
+
+	output, err := commandOutput(fmt.Sprintf("ls %s/*relay*.index", directory))
+	if err != nil {
+		return "", log.Errore(err)
+	}
+
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
 // Equals tests equality of this corrdinate and another one.
 func (this *LogicalVolume) IsSnapshotValid() bool {
 	if !this.IsSnapshot {
@@ -358,21 +387,6 @@ func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 		}
 		datadir = re.FindStringSubmatch(datadir)[1]
 	}
-}
-
-func GetMySQLDataDir() (string, error) {
-	command := config.Config.MySQLDatadirCommand
-	output, err := commandOutput(command)
-	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
-}
-
-func GetMySQLPort() (int64, error) {
-	command := config.Config.MySQLPortCommand
-	output, err := commandOutput(command)
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
 }
 
 func AvailableSnapshots(requireLocal bool) ([]string, error) {

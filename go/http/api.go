@@ -449,6 +449,21 @@ func (this *HttpAPI) Status(params martini.Params, r render.Render, req *http.Re
 	}
 }
 
+// RelayLogIndexFile returns mysql relay log index file, full path
+func (this *HttpAPI) RelayLogIndexFile(params martini.Params, r render.Render, req *http.Request) {
+	if err := validateToken(req.URL.Query().Get("token")); err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+
+	output, err := osagent.GetRelayLogIndexFileName()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, output)
+}
+
 func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *http.Request) {
 	var err error
 	if err = validateToken(req.URL.Query().Get("token")); err != nil {
@@ -502,6 +517,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/abort-seed/:seedId", this.AbortSeed)
 	m.Get("/api/seed-command-completed/:seedId", this.SeedCommandCompleted)
 	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
+	m.Get("/api/mysql-relay-log-index-file", this.RelayLogIndexFile)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
 }
