@@ -20,7 +20,7 @@
     "HTTPPort": 3002,
     "HTTPAuthUser": "",
     "HTTPAuthPassword": "",
-    "UseSSL": true,
+    "UseSSL": false,
     "SSLCertFile": "",
     "SSLPrivateKeyFile": "",
     "HttpTimeoutSeconds": 10,
@@ -28,5 +28,5 @@
     "CustomCommands": {
         "true": "/bin/true"
     },
-    "TokenHintFile": "",
+    "TokenHintFile": ""
 }
