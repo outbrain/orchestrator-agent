@@ -59,6 +59,7 @@ type Configuration struct {
 	HttpTimeoutSeconds                 int               // Number of idle seconds before HTTP GET request times out (when accessing orchestrator)
 	ExecWithSudo                       bool              // If true, run os commands that need privileged access with sudo. Usually set when running agent with a non-privileged user
 	CustomCommands                     map[string]string // Anything in this list of options will be exposed as an API callable options
+	TokenHintFile                      string            // If defined, token will be stored in this file
 }
 
 var Config *Configuration = NewConfiguration()
@@ -99,6 +100,7 @@ func NewConfiguration() *Configuration {
 		HttpTimeoutSeconds:                 10,
 		ExecWithSudo:                       false,
 		CustomCommands:                     make(map[string]string),
+		TokenHintFile:                      "",
 	}
 }
 
