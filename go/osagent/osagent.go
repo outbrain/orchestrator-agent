@@ -29,6 +29,7 @@ import (
 
 	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/go/config"
+	"github.com/outbrain/orchestrator-agent/go/inst"
 )
 
 const (
@@ -95,6 +96,30 @@ func GetRelayLogFileNames() (fileNames []string, err error) {
 		}
 	}
 	return fileNames, nil
+}
+
+// GetRelayLogEndCoordinates returns the coordinates at the end of relay logs
+func GetRelayLogEndCoordinates() (coordinates *inst.BinlogCoordinates, err error) {
+	relaylogFileNames, err := GetRelayLogFileNames()
+	if err != nil {
+		return coordinates, log.Errore(err)
+	}
+
+	lastRelayLogFile := relaylogFileNames[len(relaylogFileNames)-1]
+	output, err := commandOutput(sudoCmd(fmt.Sprintf("du -b %s", lastRelayLogFile)))
+	tokens, err := outputTokens(`[ \t]+`, output, err)
+	if err != nil {
+		return coordinates, err
+	}
+
+	var fileSize int64
+	for _, lineTokens := range tokens {
+		fileSize, err = strconv.ParseInt(lineTokens[0], 10, 0)
+	}
+	if err != nil {
+		return coordinates, err
+	}
+	return &inst.BinlogCoordinates{LogFile: lastRelayLogFile, LogPos: fileSize, Type: inst.RelayLog}, nil
 }
 
 func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition int64) (string, error) {

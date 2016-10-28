@@ -459,6 +459,20 @@ func (this *HttpAPI) RelayLogFiles(params martini.Params, r render.Render, req *
 	r.JSON(200, output)
 }
 
+// RelayLogFiles returns the list of active relay logs
+func (this *HttpAPI) RelayLogEndCoordinates(params martini.Params, r render.Render, req *http.Request) {
+	if err := this.validateToken(r, req); err != nil {
+		return
+	}
+
+	coordinates, err := osagent.GetRelayLogEndCoordinates()
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, coordinates)
+}
+
 // BinlogContents returns contents of binary log entries
 func (this *HttpAPI) RelaylogContentsTail(params martini.Params, r render.Render, req *http.Request) {
 	if err := this.validateToken(r, req); err != nil {
@@ -576,6 +590,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/seed-command-succeeded/:seedId", this.SeedCommandSucceeded)
 	m.Get("/api/mysql-relay-log-index-file", this.RelayLogIndexFile)
 	m.Get("/api/mysql-relay-log-files", this.RelayLogFiles)
+	m.Get("/api/mysql-relay-log-end-coordinates", this.RelayLogEndCoordinates)
 	m.Get("/api/mysql-binlog-contents", this.BinlogContents)
 	m.Get("/api/mysql-relaylog-contents-tail/:relaylog/:start", this.RelaylogContentsTail)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
