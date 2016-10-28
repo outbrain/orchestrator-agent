@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"path"
 	"strconv"
@@ -595,4 +596,15 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mysql-relaylog-contents-tail/:relaylog/:start", this.RelaylogContentsTail)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
+
+	// list all the /debug/ endpoints we want
+	m.Get("/debug/pprof", pprof.Index)
+	m.Get("/debug/pprof/cmdline", pprof.Cmdline)
+	m.Get("/debug/pprof/profile", pprof.Profile)
+	m.Get("/debug/pprof/symbol", pprof.Symbol)
+	m.Post("/debug/pprof/symbol", pprof.Symbol)
+	m.Get("/debug/pprof/block", pprof.Handler("block").ServeHTTP)
+	m.Get("/debug/pprof/heap", pprof.Handler("heap").ServeHTTP)
+	m.Get("/debug/pprof/goroutine", pprof.Handler("goroutine").ServeHTTP)
+	m.Get("/debug/pprof/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
 }
