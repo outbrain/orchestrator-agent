@@ -71,6 +71,7 @@ func main() {
 
 	log.Debugf("Process token: %s", agent.ProcessToken.Hash)
 	if config.Config.TokenHintFile != "" {
+		log.Debugf("Writing token to TokenHintFile: %s", config.Config.TokenHintFile)
 		err := ioutil.WriteFile(config.Config.TokenHintFile, []byte(agent.ProcessToken.Hash), 0644)
 		log.Errore(err)
 	}

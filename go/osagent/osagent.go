@@ -29,6 +29,7 @@ import (
 
 	"github.com/outbrain/golib/log"
 	"github.com/outbrain/orchestrator-agent/go/config"
+	"github.com/outbrain/orchestrator-agent/go/inst"
 )
 
 const (
@@ -44,6 +45,101 @@ type LogicalVolume struct {
 	Path            string
 	IsSnapshot      bool
 	SnapshotPercent float64
+}
+
+func GetMySQLDataDir() (string, error) {
+	command := config.Config.MySQLDatadirCommand
+	output, err := commandOutput(command)
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
+func GetMySQLPort() (int64, error) {
+	command := config.Config.MySQLPortCommand
+	output, err := commandOutput(command)
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
+}
+
+// GetRelayLogIndexFileName attempts to find the relay log index file under the mysql datadir
+func GetRelayLogIndexFileName() (string, error) {
+	directory, err := GetMySQLDataDir()
+	if err != nil {
+		return "", log.Errore(err)
+	}
+
+	output, err := commandOutput(fmt.Sprintf("ls %s/*relay*.index", directory))
+	if err != nil {
+		return "", log.Errore(err)
+	}
+
+	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
+}
+
+// GetRelayLogFileNames attempts to find the active relay logs
+func GetRelayLogFileNames() (fileNames []string, err error) {
+	relayLogIndexFile, err := GetRelayLogIndexFileName()
+	if err != nil {
+		return fileNames, log.Errore(err)
+	}
+
+	contents, err := ioutil.ReadFile(relayLogIndexFile)
+	if err != nil {
+		return fileNames, log.Errore(err)
+	}
+
+	for _, fileName := range strings.Split(string(contents), "\n") {
+		if fileName != "" {
+			fileName = path.Join(path.Dir(relayLogIndexFile), fileName)
+			fileNames = append(fileNames, fileName)
+		}
+	}
+	return fileNames, nil
+}
+
+// GetRelayLogEndCoordinates returns the coordinates at the end of relay logs
+func GetRelayLogEndCoordinates() (coordinates *inst.BinlogCoordinates, err error) {
+	relaylogFileNames, err := GetRelayLogFileNames()
+	if err != nil {
+		return coordinates, log.Errore(err)
+	}
+
+	lastRelayLogFile := relaylogFileNames[len(relaylogFileNames)-1]
+	output, err := commandOutput(sudoCmd(fmt.Sprintf("du -b %s", lastRelayLogFile)))
+	tokens, err := outputTokens(`[ \t]+`, output, err)
+	if err != nil {
+		return coordinates, err
+	}
+
+	var fileSize int64
+	for _, lineTokens := range tokens {
+		fileSize, err = strconv.ParseInt(lineTokens[0], 10, 0)
+	}
+	if err != nil {
+		return coordinates, err
+	}
+	return &inst.BinlogCoordinates{LogFile: lastRelayLogFile, LogPos: fileSize, Type: inst.RelayLog}, nil
+}
+
+func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition int64) (string, error) {
+	if len(binlogFiles) == 0 {
+		return "", log.Errorf("No binlog files provided in MySQLBinlogContents")
+	}
+	cmd := `mysqlbinlog`
+	for _, binlogFile := range binlogFiles {
+		cmd = fmt.Sprintf("%s %s", cmd, binlogFile)
+	}
+	if startPosition != 0 {
+		cmd = fmt.Sprintf("%s --start-position=%d", cmd, startPosition)
+	}
+	if stopPosition != 0 {
+		cmd = fmt.Sprintf("%s --stop-position=%d", cmd, stopPosition)
+	}
+	cmd = fmt.Sprintf("%s | gzip | base64", cmd)
+
+	output, err := commandOutput(cmd)
+	return string(output), err
 }
 
 // Equals tests equality of this corrdinate and another one.
@@ -358,21 +454,6 @@ func HeuristicMySQLDataPath(mountPoint string) (string, error) {
 		}
 		datadir = re.FindStringSubmatch(datadir)[1]
 	}
-}
-
-func GetMySQLDataDir() (string, error) {
-	command := config.Config.MySQLDatadirCommand
-	output, err := commandOutput(command)
-	return strings.TrimSpace(fmt.Sprintf("%s", output)), err
-}
-
-func GetMySQLPort() (int64, error) {
-	command := config.Config.MySQLPortCommand
-	output, err := commandOutput(command)
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseInt(strings.TrimSpace(fmt.Sprintf("%s", output)), 10, 0)
 }
 
 func AvailableSnapshots(requireLocal bool) ([]string, error) {
