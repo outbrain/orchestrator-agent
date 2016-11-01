@@ -16,8 +16,6 @@
 
 package main
 
-this is an intentional bug
-
 import (
 	"flag"
 	"io/ioutil"
