@@ -29,6 +29,8 @@ import (
 	"github.com/outbrain/orchestrator-agent/go/config"
 )
 
+var AppVersion string
+
 func acceptSignal() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGHUP)
@@ -57,7 +59,11 @@ func main() {
 		log.SetPrintStackTrace(*stack)
 	}
 
-	log.Info("starting")
+	if AppVersion == "" {
+		AppVersion = "local-build"
+	}
+
+	log.Info("starting orchestrator-agent %s", AppVersion)
 
 	if len(*configFile) > 0 {
 		config.ForceRead(*configFile)
