@@ -169,7 +169,7 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 		if headerSize, err = MySQLBinlogContentHeaderSize(binlogFiles[0]); err != nil {
 			return "", log.Errore(err)
 		}
-		cmd := fmt.Sprintf("cat %s | head -c$%d >> %s", binlogFiles[0], headerSize, tmpFile.Name())
+		cmd := fmt.Sprintf("cat %s | head -c%d >> %s", binlogFiles[0], headerSize, tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 			return "", err
 		}
