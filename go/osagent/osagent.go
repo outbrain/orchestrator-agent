@@ -142,31 +142,38 @@ func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition
 	return string(output), err
 }
 
-func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPosition int64) (string, error) {
+func MySQLBinlogContentHeaderSize(binlogFile string) (int64, error) {
+	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-binlog-header-size-")
+	if err != nil {
+		return 0, log.Errore(err)
+	}
+	// magic header
+	// There are the first 4 bytes, and then there's also the first entry (the format-description).
+	// We need both from the first log file.
+	// Typically, the format description ends at pos 120, but let's verify...
+
+	cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | head -1 | awk '{print $2}' > %s", binlogFile, tmpFile.Name())
+	if content, err := commandOutput(sudoCmd(cmd)); err != nil {
+		return 0, err
+	} else {
+		return strconv.ParseInt(string(content), 10, 0)
+	}
+}
+
+func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPosition int64) (result string, err error) {
 	if len(binlogFiles) == 0 {
 		return "", log.Errorf("No binlog files provided in MySQLBinlogContents")
-	}
-	binlogHeaderTmpFile, err := ioutil.TempFile("", "orchestrator-agent-binlog-header-size-")
-	if err != nil {
-		return "", log.Errore(err)
-	}
-	{
-		// magic header
-		// There are the first 4 bytes, and then there's also the first entry (the format-description).
-		// We need both from the first log file.
-		// Typically, the format description ends at pos 120, but let's verify...
-
-		cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | head -1 | awk '{print $2}' > %s", binlogFiles[0], binlogHeaderTmpFile.Name())
-		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
-			return "", err
-		}
 	}
 	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-binlog-contents-")
 	if err != nil {
 		return "", log.Errore(err)
 	}
+	var headerSize int64
 	if startPosition != 0 {
-		cmd := fmt.Sprintf("cat %s | head -c$(cat %s) >> %s", binlogFiles[0], binlogHeaderTmpFile.Name(), tmpFile.Name())
+		if headerSize, err = MySQLBinlogContentHeaderSize(binlogFiles[0]); err != nil {
+			return "", log.Errore(err)
+		}
+		cmd := fmt.Sprintf("cat %s | head -c$%d >> %s", binlogFiles[0], headerSize, tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 			return "", err
 		}
@@ -179,6 +186,13 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 		}
 		if i == 0 && startPosition != 0 {
 			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (startPosition + 1))
+		}
+		if i > 0 {
+			// At any case, we drop out binlog header (magic + format_description) for next relay logs
+			if headerSize, err = MySQLBinlogContentHeaderSize(binlogFile); err != nil {
+				return "", log.Errore(err)
+			}
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (headerSize + 1))
 		}
 		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
