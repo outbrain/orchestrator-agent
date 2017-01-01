@@ -152,7 +152,7 @@ func MySQLBinlogContentHeaderSize(binlogFile string) (int64, error) {
 	if content, err := commandOutput(sudoCmd(cmd)); err != nil {
 		return 0, err
 	} else {
-		return strconv.ParseInt(string(content), 10, 0)
+		return strconv.ParseInt(strings.TrimSpace(string(content)), 10, 0)
 	}
 }
 
