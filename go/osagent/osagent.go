@@ -152,7 +152,7 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 	}
 	{
 		// magic header
-		cmd := fmt.Sprintf("cat %s | head -c%d >> %s", binlogFiles[0], 4, tmpFile.Name())
+		cmd := fmt.Sprintf("cat %s | head -c%d >> %s", binlogFiles[0], 120, tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 			return "", err
 		}
