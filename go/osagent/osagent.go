@@ -150,6 +150,13 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 	if err != nil {
 		return "", log.Errore(err)
 	}
+	{
+		// magic header
+		cmd := fmt.Sprintf("cat %s | head -c%d >> %s", binlogFiles[0], 4, tmpFile.Name())
+		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+			return "", err
+		}
+	}
 	for i, binlogFile := range binlogFiles {
 		cmd := fmt.Sprintf("cat %s", binlogFile)
 
@@ -160,8 +167,7 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, startPosition)
 		}
 		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile.Name())
-		_, err = commandOutput(sudoCmd(cmd))
-		if err != nil {
+		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 			return "", err
 		}
 	}
