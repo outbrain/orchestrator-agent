@@ -164,7 +164,7 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 			cmd = fmt.Sprintf("%s | head -c%d", cmd, stopPosition)
 		}
 		if i == 0 && startPosition != 0 {
-			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, startPosition)
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (startPosition + 1))
 		}
 		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
