@@ -143,16 +143,12 @@ func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition
 }
 
 func MySQLBinlogContentHeaderSize(binlogFile string) (int64, error) {
-	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-binlog-header-size-")
-	if err != nil {
-		return 0, log.Errore(err)
-	}
 	// magic header
 	// There are the first 4 bytes, and then there's also the first entry (the format-description).
 	// We need both from the first log file.
 	// Typically, the format description ends at pos 120, but let's verify...
 
-	cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | head -1 | awk '{print $2}' > %s", binlogFile, tmpFile.Name())
+	cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | head -1 | awk '{print $2}'", binlogFile)
 	if content, err := commandOutput(sudoCmd(cmd)); err != nil {
 		return 0, err
 	} else {
