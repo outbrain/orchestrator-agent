@@ -142,6 +142,35 @@ func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition
 	return string(output), err
 }
 
+func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPosition int64) (string, error) {
+	if len(binlogFiles) == 0 {
+		return "", log.Errorf("No binlog files provided in MySQLBinlogContents")
+	}
+	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-binlog-contents-")
+	if err != nil {
+		return "", log.Errore(err)
+	}
+	for i, binlogFile := range binlogFiles {
+		cmd := fmt.Sprintf("cat %s", binlogFile)
+
+		if i == len(binlogFiles)-1 && stopPosition != 0 {
+			cmd = fmt.Sprintf("%s | head -c%d", cmd, stopPosition)
+		}
+		if i == 0 && startPosition != 0 {
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, startPosition)
+		}
+		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile)
+		_, err = commandOutput(sudoCmd(cmd))
+		if err != nil {
+			return "", err
+		}
+	}
+
+	cmd := fmt.Sprintf("cat %s | gzip | base64", tmpFile)
+	output, err := commandOutput(cmd)
+	return string(output), err
+}
+
 // Equals tests equality of this corrdinate and another one.
 func (this *LogicalVolume) IsSnapshotValid() bool {
 	if !this.IsSnapshot {
