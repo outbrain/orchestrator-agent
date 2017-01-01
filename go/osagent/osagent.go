@@ -156,7 +156,7 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 		// We need both from the first log file.
 		// Typically, the format description ends at pos 120, but let's verify...
 
-		cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | awk '{print $2}' > %s", binlogFiles[0], binlogHeaderTmpFile.Name())
+		cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | head -1 | awk '{print $2}' > %s", binlogFiles[0], binlogHeaderTmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 			return "", err
 		}
@@ -165,7 +165,7 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 	if err != nil {
 		return "", log.Errore(err)
 	}
-	{
+	if startPosition != 0 {
 		cmd := fmt.Sprintf("cat %s | head -c$(cat %s) >> %s", binlogFiles[0], binlogHeaderTmpFile.Name(), tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 			return "", err
