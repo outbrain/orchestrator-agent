@@ -159,14 +159,14 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 		if i == 0 && startPosition != 0 {
 			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, startPosition)
 		}
-		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile)
+		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile.Name())
 		_, err = commandOutput(sudoCmd(cmd))
 		if err != nil {
 			return "", err
 		}
 	}
 
-	cmd := fmt.Sprintf("cat %s | gzip | base64", tmpFile)
+	cmd := fmt.Sprintf("cat %s | gzip | base64", tmpFile.Name())
 	output, err := commandOutput(cmd)
 	return string(output), err
 }
