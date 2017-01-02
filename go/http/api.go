@@ -628,7 +628,7 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mysql-binlog-contents", this.BinlogContents)
 	m.Get("/api/mysql-binlog-binary-contents", this.BinlogBinaryContents)
 	m.Get("/api/mysql-relaylog-contents-tail/:relaylog/:start", this.RelaylogContentsTail)
-	m.Get("/api/apply-relaylog-contents", this.ApplyRelaylogContents)
+	m.Post("/api/apply-relaylog-contents", this.ApplyRelaylogContents)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
 
