@@ -552,13 +552,13 @@ func (this *HttpAPI) BinlogBinaryContents(params martini.Params, r render.Render
 }
 
 // ApplyRelaylogContents reads binlog contents from request's body and applies them locally
-func (this *HttpAPI) ApplyRelaylogContents(params martini.Params, r render.Render, req *http.Request, res *http.Response) {
+func (this *HttpAPI) ApplyRelaylogContents(params martini.Params, r render.Render, req *http.Request) {
 	if err := this.validateToken(r, req); err != nil {
 		return
 	}
-	defer res.Body.Close()
+	defer req.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
 		return
