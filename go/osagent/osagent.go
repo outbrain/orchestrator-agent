@@ -201,6 +201,14 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 	return string(output), err
 }
 
+func ApplyRelaylogContents(content []byte) error {
+	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-contents-")
+	if err != nil {
+		return log.Errore(err)
+	}
+	return ioutil.WriteFile(tmpFile.Name(), content, 0644)
+}
+
 // Equals tests equality of this corrdinate and another one.
 func (this *LogicalVolume) IsSnapshotValid() bool {
 	if !this.IsSnapshot {
