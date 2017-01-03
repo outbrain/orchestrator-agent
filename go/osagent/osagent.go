@@ -210,7 +210,7 @@ func ApplyRelaylogContents(content []byte) error {
 		return log.Errore(err)
 	}
 
-	relaylogContentsFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-")
+	relaylogContentsFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-bin-")
 	if err != nil {
 		return log.Errore(err)
 	}
@@ -219,6 +219,14 @@ func ApplyRelaylogContents(content []byte) error {
 	if _, err := commandOutput(sudoCmd(cmd)); err != nil {
 		return log.Errore(err)
 	}
+
+	if config.Config.MySQLClientCommand != "" {
+		cmd := fmt.Sprintf("mysqlbinlog %s | %s", relaylogContentsFile.Name(), config.Config.MySQLClientCommand)
+		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+			return log.Errore(err)
+		}
+	}
+	log.Infof("Applied relay log contents from %s", relaylogContentsFile.Name())
 
 	return nil
 }
