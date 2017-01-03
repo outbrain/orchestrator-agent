@@ -41,6 +41,7 @@ type Configuration struct {
 	ReceiveSeedDataCommand             string            // Accepts incoming data (e.g. tarball over netcat)
 	SendSeedDataCommand                string            // Sends date to remote host (e.g. tarball via netcat)
 	PostCopyCommand                    string            // command that is executed after seed is done and before MySQL starts
+	MySQLClientCommand                 string            // the `mysql` command, including ny neccesary credentials, to apply relay logs. This would be a fully-privileged account entry. Example: "mysql -uroot -p123456" or "mysql --defaults-file=/root/.my.cnf"
 	AgentsServer                       string            // HTTP address of the orchestrator agents server
 	AgentsServerPort                   string            // HTTP port of the orchestrator agents server
 	HTTPPort                           uint              // HTTP port on which this service listens
@@ -83,6 +84,7 @@ func NewConfiguration() *Configuration {
 		ReceiveSeedDataCommand:             "",
 		SendSeedDataCommand:                "",
 		PostCopyCommand:                    "",
+		MySQLClientCommand:                 "mysql",
 		AgentsServer:                       "",
 		AgentsServerPort:                   "",
 		HTTPPort:                           3002,

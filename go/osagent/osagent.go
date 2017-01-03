@@ -202,11 +202,25 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 }
 
 func ApplyRelaylogContents(content []byte) error {
-	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-contents-")
+	encodedContentsFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-encoded-")
 	if err != nil {
 		return log.Errore(err)
 	}
-	return ioutil.WriteFile(tmpFile.Name(), content, 0644)
+	if err := ioutil.WriteFile(encodedContentsFile.Name(), content, 0644); err != nil {
+		return log.Errore(err)
+	}
+
+	relaylogContentsFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-")
+	if err != nil {
+		return log.Errore(err)
+	}
+
+	cmd := fmt.Sprintf("cat %s | base64 --decode | gunzip > %s", encodedContentsFile.Name(), relaylogContentsFile.Name())
+	if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+		return log.Errore(err)
+	}
+
+	return nil
 }
 
 // Equals tests equality of this corrdinate and another one.
