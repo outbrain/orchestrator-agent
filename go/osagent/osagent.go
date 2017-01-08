@@ -142,6 +142,95 @@ func MySQLBinlogContents(binlogFiles []string, startPosition int64, stopPosition
 	return string(output), err
 }
 
+func MySQLBinlogContentHeaderSize(binlogFile string) (int64, error) {
+	// magic header
+	// There are the first 4 bytes, and then there's also the first entry (the format-description).
+	// We need both from the first log file.
+	// Typically, the format description ends at pos 120, but let's verify...
+
+	cmd := fmt.Sprintf("mysqlbinlog %s --start-position=4 | head | egrep -o 'end_log_pos [^ ]+' | head -1 | awk '{print $2}'", binlogFile)
+	if content, err := commandOutput(sudoCmd(cmd)); err != nil {
+		return 0, err
+	} else {
+		return strconv.ParseInt(strings.TrimSpace(string(content)), 10, 0)
+	}
+}
+
+func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPosition int64) (result string, err error) {
+	if len(binlogFiles) == 0 {
+		return "", log.Errorf("No binlog files provided in MySQLBinlogContents")
+	}
+	tmpFile, err := ioutil.TempFile("", "orchestrator-agent-binlog-contents-")
+	if err != nil {
+		return "", log.Errore(err)
+	}
+	var headerSize int64
+	if startPosition != 0 {
+		if headerSize, err = MySQLBinlogContentHeaderSize(binlogFiles[0]); err != nil {
+			return "", log.Errore(err)
+		}
+		cmd := fmt.Sprintf("cat %s | head -c%d >> %s", binlogFiles[0], headerSize, tmpFile.Name())
+		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+			return "", err
+		}
+	}
+	for i, binlogFile := range binlogFiles {
+		cmd := fmt.Sprintf("cat %s", binlogFile)
+
+		if i == len(binlogFiles)-1 && stopPosition != 0 {
+			cmd = fmt.Sprintf("%s | head -c %d", cmd, stopPosition)
+		}
+		if i == 0 && startPosition != 0 {
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (startPosition + 1))
+		}
+		if i > 0 {
+			// At any case, we drop out binlog header (magic + format_description) for next relay logs
+			if headerSize, err = MySQLBinlogContentHeaderSize(binlogFile); err != nil {
+				return "", log.Errore(err)
+			}
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (headerSize + 1))
+		}
+		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile.Name())
+		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+			return "", err
+		}
+	}
+
+	cmd := fmt.Sprintf("cat %s | gzip | base64", tmpFile.Name())
+	output, err := commandOutput(cmd)
+	return string(output), err
+}
+
+func ApplyRelaylogContents(content []byte) error {
+	encodedContentsFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-encoded-")
+	if err != nil {
+		return log.Errore(err)
+	}
+	if err := ioutil.WriteFile(encodedContentsFile.Name(), content, 0644); err != nil {
+		return log.Errore(err)
+	}
+
+	relaylogContentsFile, err := ioutil.TempFile("", "orchestrator-agent-apply-relaylog-bin-")
+	if err != nil {
+		return log.Errore(err)
+	}
+
+	cmd := fmt.Sprintf("cat %s | base64 --decode | gunzip > %s", encodedContentsFile.Name(), relaylogContentsFile.Name())
+	if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+		return log.Errore(err)
+	}
+
+	if config.Config.MySQLClientCommand != "" {
+		cmd := fmt.Sprintf("mysqlbinlog %s | %s", relaylogContentsFile.Name(), config.Config.MySQLClientCommand)
+		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
+			return log.Errore(err)
+		}
+	}
+	log.Infof("Applied relay log contents from %s", relaylogContentsFile.Name())
+
+	return nil
+}
+
 // Equals tests equality of this corrdinate and another one.
 func (this *LogicalVolume) IsSnapshotValid() bool {
 	if !this.IsSnapshot {

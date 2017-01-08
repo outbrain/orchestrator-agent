@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -474,7 +475,7 @@ func (this *HttpAPI) RelayLogEndCoordinates(params martini.Params, r render.Rend
 	r.JSON(200, coordinates)
 }
 
-// BinlogContents returns contents of binary log entries
+// RelaylogContentsTail returns contents of relay logs, from given position to the very last entry
 func (this *HttpAPI) RelaylogContentsTail(params martini.Params, r render.Render, req *http.Request) {
 	if err := this.validateToken(r, req); err != nil {
 		return
@@ -501,7 +502,7 @@ func (this *HttpAPI) RelaylogContentsTail(params martini.Params, r render.Render
 		}
 	}
 
-	output, err := osagent.MySQLBinlogContents(parseRelaylogs, startPosition, 0)
+	output, err := osagent.MySQLBinlogBinaryContents(parseRelaylogs, startPosition, 0)
 	if err != nil {
 		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
 		return
@@ -509,8 +510,10 @@ func (this *HttpAPI) RelaylogContentsTail(params martini.Params, r render.Render
 	r.JSON(200, output)
 }
 
-// BinlogContents returns contents of binary log entries
-func (this *HttpAPI) BinlogContents(params martini.Params, r render.Render, req *http.Request) {
+// binlogContents returns contents of binary log entries
+func (this *HttpAPI) binlogContents(params martini.Params, r render.Render, req *http.Request,
+	contentsFunc func(binlogFiles []string, startPosition int64, stopPosition int64) (string, error),
+) {
 	if err := this.validateToken(r, req); err != nil {
 		return
 	}
@@ -536,6 +539,36 @@ func (this *HttpAPI) BinlogContents(params martini.Params, r render.Render, req 
 		return
 	}
 	r.JSON(200, output)
+}
+
+// BinlogContents returns contents of binary log entries
+func (this *HttpAPI) BinlogContents(params martini.Params, r render.Render, req *http.Request) {
+	this.binlogContents(params, r, req, osagent.MySQLBinlogContents)
+}
+
+// BinlogBinaryContents returns contents of binary log entries
+func (this *HttpAPI) BinlogBinaryContents(params martini.Params, r render.Render, req *http.Request) {
+	this.binlogContents(params, r, req, osagent.MySQLBinlogBinaryContents)
+}
+
+// ApplyRelaylogContents reads binlog contents from request's body and applies them locally
+func (this *HttpAPI) ApplyRelaylogContents(params martini.Params, r render.Render, req *http.Request) {
+	if err := this.validateToken(r, req); err != nil {
+		return
+	}
+	defer req.Body.Close()
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	err = osagent.ApplyRelaylogContents(body)
+	if err != nil {
+		r.JSON(500, &APIResponse{Code: ERROR, Message: err.Error()})
+		return
+	}
+	r.JSON(200, "OK")
 }
 
 func (this *HttpAPI) RunCommand(params martini.Params, r render.Render, req *http.Request) {
@@ -593,7 +626,9 @@ func (this *HttpAPI) RegisterRequests(m *martini.ClassicMartini) {
 	m.Get("/api/mysql-relay-log-files", this.RelayLogFiles)
 	m.Get("/api/mysql-relay-log-end-coordinates", this.RelayLogEndCoordinates)
 	m.Get("/api/mysql-binlog-contents", this.BinlogContents)
+	m.Get("/api/mysql-binlog-binary-contents", this.BinlogBinaryContents)
 	m.Get("/api/mysql-relaylog-contents-tail/:relaylog/:start", this.RelaylogContentsTail)
+	m.Post("/api/apply-relaylog-contents", this.ApplyRelaylogContents)
 	m.Get("/api/custom-commands/:cmd", this.RunCommand)
 	m.Get(config.Config.StatusEndpoint, this.Status)
 
