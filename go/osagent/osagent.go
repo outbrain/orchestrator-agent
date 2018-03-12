@@ -28,15 +28,15 @@ import (
 	"strings"
 
 	"github.com/outbrain/golib/log"
-	"github.com/outbrain/orchestrator-agent/go/config"
-	"github.com/outbrain/orchestrator-agent/go/inst"
+	"github.com/github/orchestrator-agent/go/config"
+	"github.com/github/orchestrator-agent/go/inst"
 )
 
 const (
 	SeedTransferPort = 21234
 )
 
-var activeCommands map[string](*exec.Cmd) = make(map[string](*exec.Cmd))
+var activeCommands = make(map[string]*exec.Cmd)
 
 // LogicalVolume describes an LVM volume
 type LogicalVolume struct {
@@ -181,14 +181,14 @@ func MySQLBinlogBinaryContents(binlogFiles []string, startPosition int64, stopPo
 			cmd = fmt.Sprintf("%s | head -c %d", cmd, stopPosition)
 		}
 		if i == 0 && startPosition != 0 {
-			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (startPosition + 1))
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, startPosition + 1)
 		}
 		if i > 0 {
 			// At any case, we drop out binlog header (magic + format_description) for next relay logs
 			if headerSize, err = MySQLBinlogContentHeaderSize(binlogFile); err != nil {
 				return "", log.Errore(err)
 			}
-			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, (headerSize + 1))
+			cmd = fmt.Sprintf("%s | tail -c+%d", cmd, headerSize + 1)
 		}
 		cmd = fmt.Sprintf("%s >> %s", cmd, tmpFile.Name())
 		if _, err := commandOutput(sudoCmd(cmd)); err != nil {
@@ -349,7 +349,7 @@ func LogicalVolumes(volumeName string, filterPattern string) ([]LogicalVolume, e
 		return nil, err
 	}
 
-	logicalVolumes := []LogicalVolume{}
+	var logicalVolumes []LogicalVolume
 	for _, lineTokens := range tokens {
 		logicalVolume := LogicalVolume{
 			Name:      lineTokens[1],
@@ -357,7 +357,7 @@ func LogicalVolumes(volumeName string, filterPattern string) ([]LogicalVolume, e
 			Path:      lineTokens[3],
 		}
 		logicalVolume.SnapshotPercent, err = strconv.ParseFloat(lineTokens[4], 32)
-		logicalVolume.IsSnapshot = (err == nil)
+		logicalVolume.IsSnapshot = err == nil
 		if strings.Contains(logicalVolume.Name, filterPattern) {
 			logicalVolumes = append(logicalVolumes, logicalVolume)
 		}
