@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PACKAGECLOUD_USER="${PACKAGECLOUD_USER:-github}"
-PACKAGECLOUD_REPO="${PACKAGECLOUD_REPO:-orchestrator}"
+PACKAGECLOUD_REPO="${PACKAGECLOUD_REPO:-orchestrator-agent}"
 packagecloud_uri="https://${PACKAGECLOUD_TOKEN}:@packagecloud.io"
 latest_tag=$(git describe --abbrev=0 --tags | tr -d "v")
 

@@ -349,7 +349,7 @@ func LogicalVolumes(volumeName string, filterPattern string) ([]LogicalVolume, e
 		return nil, err
 	}
 
-	var logicalVolumes []LogicalVolume
+	logicalVolumes := []LogicalVolume{}
 	for _, lineTokens := range tokens {
 		logicalVolume := LogicalVolume{
 			Name:      lineTokens[1],
@@ -357,7 +357,7 @@ func LogicalVolumes(volumeName string, filterPattern string) ([]LogicalVolume, e
 			Path:      lineTokens[3],
 		}
 		logicalVolume.SnapshotPercent, err = strconv.ParseFloat(lineTokens[4], 32)
-		logicalVolume.IsSnapshot = err == nil
+		logicalVolume.IsSnapshot = (err == nil)
 		if strings.Contains(logicalVolume.Name, filterPattern) {
 			logicalVolumes = append(logicalVolumes, logicalVolume)
 		}

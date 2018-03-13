@@ -1,7 +1,7 @@
 # Pushes all deb and rpm files from ./repos to PackageCloud.
 
 packagecloud_user = ENV["PACKAGECLOUD_USER"] || "github"
-packagecloud_repo = ENV["PACKAGECLOUD_REPO"] || "orchestrator"
+packagecloud_repo = ENV["PACKAGECLOUD_REPO"] || "orchestrator-agent"
 packagecloud_token = ENV["PACKAGECLOUD_TOKEN"] || begin
   puts "PACKAGECLOUD_TOKEN env required"
   exit 1

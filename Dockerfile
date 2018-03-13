@@ -3,8 +3,6 @@ FROM alpine:latest
 EXPOSE 3001
 ENV GOPATH=/tmp/go
 
-# ADD ./ ${GOPATH}/src/github.com/github/orchestrator-agent/
-
 RUN set -ex \
     && apk add --update --no-cache bash \
     && apk add --update --no-cache --virtual .build-deps \
@@ -14,8 +12,6 @@ RUN set -ex \
         build-base \
     && cd /tmp \
     && { go get -d github.com/github/orchestrator-agent ; : ; }
-#    && cd $GOPATH/src/github.com/github/orchestrator-agent/ \
-#    && go get ./go/... \
     && find $GOPATH/src/ -name *.go \
     && bash -x build.sh -b \
     && rsync -av $(find /tmp/orchestrator-agent-release -type d -name orchestrator-agent -maxdepth 2)/ / \
