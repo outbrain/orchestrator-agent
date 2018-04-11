@@ -27,16 +27,18 @@ usage() {
 }
 
 function precheck() {
-  local target
+  local target build_only
   local ok=0 # return err. so shell exit code
+  target="$1"
+  build_only="$2"
 
   if [[ "$target" == "linux" ]]; then
-    if [[ ! -x "$( which fpm )" ]]; then
+    if [[ $build_only -eq 0 ]] && [[ ! -x "$( which fpm )" ]]; then
       echo "Please install fpm and ensure it is in PATH (typically: 'gem install fpm')"
       ok=1
     fi
 
-    if [[ ! -x "$( which rpmbuild )" ]]; then
+    if [[ $build_only -eq 0 ]] && [[ ! -x "$( which rpmbuild )" ]]; then
       echo "rpmbuild not in PATH, rpm will not be built (OS/X: 'brew install rpm')"
     fi
   fi
@@ -144,7 +146,7 @@ function main() {
   prefix="$3"
   build_only=$4
 
-  precheck "$target"
+  precheck "$target" "$build_only"
   builddir=$( setuptree "$prefix" )
   oinstall "$builddir" "$prefix"
   build "$target" "$arch" "$builddir" "$prefix"
