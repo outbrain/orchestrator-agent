@@ -156,7 +156,7 @@ An example configuration file may be:
 If you initially deployed orchestrator with a minimally working configuration, you will need to make some changes on the server side to prepare it for newly deployed agents. The configuration lines needed on the server side to support agents are
 
 *  `ServeAgentsHttp`      (bool), Must be set to `true` to get the orchestrator server listening for agents
-*  `AgentsServerPort`     (String), The port on which the server should listen to agents. Shoult match the port you define for agents in `AgentsServer`.
+*  `AgentsServerPort`     (String), The port on which the server should listen to agents. Should match the port you define for agents in `AgentsServer`.
 
 ### Requirements:
 
